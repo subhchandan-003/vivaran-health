@@ -16,7 +16,7 @@ const TEST_PASSWORD = "TestPass123!";
 export async function render(app) {
   let mode = "login"; // 'login' | 'signup'
 
-  function paint(errorMessage = "", infoMessage = "") {
+  function paint(errorMessage = "", infoMessage = "", prefillEmail = "") {
     app.innerHTML = `
       <div class="auth-shell">
         <div class="auth-card">
@@ -56,7 +56,7 @@ export async function render(app) {
             ` : ""}
             <div class="field">
               <label for="email">Email</label>
-              <input type="email" id="email" autocomplete="email" required />
+              <input type="email" id="email" autocomplete="email" required value="${escapeHtml(prefillEmail)}" />
             </div>
             <div class="field">
               <label for="password">Password</label>
@@ -168,7 +168,7 @@ export async function render(app) {
         navigate("/timeline");
       }
     } catch (err) {
-      paint(err.message || "Something went wrong. Please try again.");
+      paint(err.message || "Something went wrong. Please try again.", "", email);
     } finally {
       submitBtn.disabled = false;
     }

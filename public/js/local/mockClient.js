@@ -199,10 +199,21 @@ const auth = {
 
   async signInWithPassword({ email, password }) {
     const users = readTable("users");
-    const found = users.find((u) => u.email === email && u.password === password);
-    if (!found) {
-      return { data: { user: null, session: null }, error: { message: "Invalid email or password." } };
+    const byEmail = users.find((u) => u.email === email);
+    if (!byEmail) {
+      // Local mode has no real security model, so it's more useful to be
+      // specific here than to give a generic "invalid credentials" — this
+      // account genuinely doesn't exist in *this* browser's local storage.
+      // Local data never syncs across devices/browsers/private windows.
+      return {
+        data: { user: null, session: null },
+        error: { message: "No account with that email on this device. Local demo data doesn't sync across browsers or devices — sign up here first." },
+      };
     }
+    if (byEmail.password !== password) {
+      return { data: { user: null, session: null }, error: { message: "Incorrect password for this local test account." } };
+    }
+    const found = byEmail;
     const user = { id: found.id, email: found.email };
     const session = { user, access_token: "local-mock-token" };
     setSession(session);

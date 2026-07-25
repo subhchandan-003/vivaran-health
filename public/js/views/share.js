@@ -107,9 +107,9 @@ export async function render(app, visitId) {
       </div>
     `;
 
-    // Wire up all buttons FIRST — QR generation depends on a CDN script that
-    // can fail to load (network hiccup, ad-blocker, offline). If that throws,
-    // it must never take Copy/My shared links/Done down with it.
+    // Wire up all buttons FIRST, and keep QR generation guarded below — even
+    // though QRCode is now vendored locally (no CDN/network dependency), a
+    // rendering failure here must never take Copy/My shared links/Done with it.
     document.getElementById("copy-btn").addEventListener("click", async () => {
       const input = document.getElementById("share-url");
       input.select();

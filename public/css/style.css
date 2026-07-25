@@ -389,6 +389,11 @@ a { color: var(--teal-600); }
 /* ---------- Upload / image preview ---------- */
 
 .upload-dropzone {
+  /* This is a <label>, which defaults to display:inline. Left inline, its
+     block-level children force it to wrap across multiple line boxes, and
+     the border/background render as several disconnected fragments instead
+     of one box — hence the explicit block display here. */
+  display: block;
   border: 2px dashed var(--border);
   border-radius: var(--radius-lg);
   padding: 40px 20px;

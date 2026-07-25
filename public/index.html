@@ -9,8 +9,9 @@
 <body>
   <div id="app"></div>
 
-  <!-- Client-side QR code generation (CDN, no build step) -->
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
+  <!-- Client-side QR code generation, vendored locally (see js/vendor/qrcode.min.js)
+       so it doesn't depend on a CDN being reachable at runtime. -->
+  <script src="js/vendor/qrcode.min.js"></script>
 
   <!--
     Running in local/offline mode (see public/js/dataClient.js) — no Supabase
