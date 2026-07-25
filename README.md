@@ -75,9 +75,55 @@ nothing needs to be rewritten, just re-pointed:
    Authentication → Providers → Email → "Confirm email", or just confirm via
    the email link Supabase sends.
 
+## Deploying to Netlify
+
+The site is fully static (no build step, no server), so deployment is just
+"publish the `public/` folder." `netlify.toml` at the repo root already
+configures this — Netlify picks it up automatically.
+
+**Option A — Netlify Dashboard (no CLI needed):**
+
+1. [app.netlify.com](https://app.netlify.com) → **Add new site → Import an
+   existing project** → connect GitHub → pick `vivaran-health`.
+2. Netlify reads `netlify.toml` and pre-fills: publish directory `public`,
+   no build command. Leave both as-is.
+3. Deploy. No environment variables are needed right now — the app runs in
+   local/offline mode (see above), so there's nothing to configure.
+
+**Option B — Netlify CLI:**
+
+```sh
+npm install -g netlify-cli
+netlify login          # opens a browser to authenticate — must be run by you
+netlify init            # links this repo to a Netlify site, or:
+netlify deploy --prod --dir=public
+```
+
+`netlify login` and the first `deploy`/`init` need your own Netlify account —
+an agent can't complete that browser-based auth step for you.
+
+**What `netlify.toml` sets up:**
+
+- `publish = "public"` — serves the static frontend as-is.
+- A catch-all redirect to `index.html` — the app's hash-based routing
+  (`#/timeline`, `#/doctor`, ...) never touches the server, so this is only a
+  safety net for a bare/unknown path (typo, stale bookmark), not something
+  the app depends on day-to-day.
+- Baseline security headers (`X-Frame-Options`, `X-Content-Type-Options`,
+  `Referrer-Policy`).
+
+**When you reconnect Supabase later**, `config.js` is gitignored so it won't
+be present in what Netlify builds from Git. At that point, either: add a tiny
+build step that writes `public/js/config.js` from Netlify environment
+variables (`SUPABASE_URL`, `SUPABASE_ANON_KEY` — the anon key is meant to be
+public, so this is safe), or use Netlify's **Snippet injection** /
+manually commit a production `config.js` if you're comfortable with that
+tradeoff. Not needed for the current local/offline deploy.
+
 ## Project structure
 
 ```
+netlify.toml
 public/
   index.html
   css/style.css
@@ -118,4 +164,4 @@ current browser only.
 ## Out of scope for this build
 
 ABHA/ABDM integration, audio recording, hospital/doctor accounts, appointments,
-insurance, payments, native mobile app, deployment (Netlify/Vercel — phase 2).
+insurance, payments, native mobile app.

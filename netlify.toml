@@ -1,0 +1,17 @@
+[build]
+  publish = "public"
+  # No build step — plain HTML/CSS/vanilla JS, served as-is.
+
+# Hash-based routing (#/timeline, #/doctor, etc.) never hits the server, so
+# this is only a safety net for a bare/unknown path (typo, stale bookmark).
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "strict-origin-when-cross-origin"
