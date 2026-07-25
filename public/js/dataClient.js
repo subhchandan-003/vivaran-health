@@ -12,3 +12,8 @@
 // Nothing else needs to change — every view imports `{ supabase }` from this
 // file, not from supabaseClient.js or local/mockClient.js directly.
 export { supabase } from "./local/mockClient.js";
+
+// Flip to false when you switch the export above to supabaseClient.js — this
+// gates the quick-test-login shortcuts on the auth screen, which only make
+// sense against the local mock (see views/auth.js).
+export const isLocalMode = true;

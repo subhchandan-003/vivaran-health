@@ -1,4 +1,4 @@
-import { supabase } from "../dataClient.js";
+import { supabase, isLocalMode } from "../dataClient.js";
 import { navigate } from "../router.js";
 import { escapeHtml } from "../util/dom.js";
 
@@ -6,6 +6,12 @@ const CONSENT_TEXT =
   "I agree to store my health documents securely. Vivaran Health will never share my data without my explicit action.";
 
 const PENDING_CONSENT_KEY = "vivaran_pending_consent";
+
+// Local-mode-only shortcut credentials — never shown/used once reconnected
+// to real Supabase (gated by isLocalMode below).
+const TEST_NAME = "Test Patient";
+const TEST_EMAIL = "test.patient@vivaran.local";
+const TEST_PASSWORD = "TestPass123!";
 
 export async function render(app) {
   let mode = "login"; // 'login' | 'signup'
@@ -26,6 +32,17 @@ export async function render(app) {
             <button type="button" class="auth-tab ${mode === "login" ? "active" : ""}" data-mode="login">Log in</button>
             <button type="button" class="auth-tab ${mode === "signup" ? "active" : ""}" data-mode="signup">Sign up</button>
           </div>
+
+          ${isLocalMode ? `
+            <div class="alert alert-info" style="display:flex;flex-direction:column;gap:8px;">
+              <div><strong>Local demo mode</strong> — skip typing, use the test account:</div>
+              <div style="font-size:0.78rem;color:var(--ink-500);">${escapeHtml(TEST_EMAIL)} &nbsp;/&nbsp; ${escapeHtml(TEST_PASSWORD)}</div>
+              <div style="display:flex;gap:8px;">
+                <button type="button" class="btn btn-secondary" id="quick-signup-btn" style="flex:1;">Quick sign up</button>
+                <button type="button" class="btn btn-secondary" id="quick-login-btn" style="flex:1;">Quick log in</button>
+              </div>
+            </div>
+          ` : ""}
 
           ${errorMessage ? `<div class="alert alert-error">${escapeHtml(errorMessage)}</div>` : ""}
           ${infoMessage ? `<div class="alert alert-info">${escapeHtml(infoMessage)}</div>` : ""}
@@ -69,6 +86,46 @@ export async function render(app) {
     });
 
     app.querySelector("#auth-form").addEventListener("submit", handleSubmit);
+
+    const quickSignupBtn = app.querySelector("#quick-signup-btn");
+    if (quickSignupBtn) quickSignupBtn.addEventListener("click", quickSignUp);
+
+    const quickLoginBtn = app.querySelector("#quick-login-btn");
+    if (quickLoginBtn) quickLoginBtn.addEventListener("click", quickLogIn);
+  }
+
+  async function quickSignUp() {
+    const btn = document.getElementById("quick-signup-btn");
+    btn.disabled = true;
+    btn.textContent = "Setting up...";
+    try {
+      localStorage.setItem(
+        PENDING_CONSENT_KEY,
+        JSON.stringify({ name: TEST_NAME, consent_given: true, consent_timestamp: new Date().toISOString(), stashed_at: Date.now() }),
+      );
+      const { error } = await supabase.auth.signUp({ email: TEST_EMAIL, password: TEST_PASSWORD });
+      if (error) {
+        // Test account already exists from a previous run — log in instead.
+        const { error: loginError } = await supabase.auth.signInWithPassword({ email: TEST_EMAIL, password: TEST_PASSWORD });
+        if (loginError) throw loginError;
+      }
+      navigate("/timeline");
+    } catch (err) {
+      paint(err.message || "Could not set up the test account.");
+    }
+  }
+
+  async function quickLogIn() {
+    const btn = document.getElementById("quick-login-btn");
+    btn.disabled = true;
+    btn.textContent = "Logging in...";
+    try {
+      const { error } = await supabase.auth.signInWithPassword({ email: TEST_EMAIL, password: TEST_PASSWORD });
+      if (error) throw error;
+      navigate("/timeline");
+    } catch (err) {
+      paint(err.message || "No test account yet — use Quick sign up first.");
+    }
   }
 
   async function handleSubmit(e) {
