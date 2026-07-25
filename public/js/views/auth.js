@@ -21,7 +21,7 @@ export async function render(app) {
       <div class="auth-shell">
         <div class="auth-card">
           <div class="auth-brand">
-            <span class="app-header__logo">V</span>
+            <span class="app-header__logo app-header__logo--lg"><img src="assets/logo.png" alt="" /></span>
             <div>
               <div style="font-weight:700;font-size:1.15rem;">Vivaran Health</div>
               <div style="color:var(--ink-500);font-size:0.85rem;">Your records, your control</div>

@@ -30,7 +30,12 @@ class QueryBuilder {
   }
 
   eq(col, val) {
-    this.filters.push({ col, val });
+    this.filters.push({ col, val, op: "eq" });
+    return this;
+  }
+
+  in(col, values) {
+    this.filters.push({ col, val: values, op: "in" });
     return this;
   }
 
@@ -67,7 +72,9 @@ class QueryBuilder {
   }
 
   _matches(row) {
-    return this.filters.every((f) => row[f.col] === f.val);
+    return this.filters.every((f) =>
+      f.op === "in" ? Array.isArray(f.val) && f.val.includes(row[f.col]) : row[f.col] === f.val,
+    );
   }
 
   _applyOrder(rows) {
@@ -281,6 +288,20 @@ const storage = {
 // ---------------------------------------------------------------------------
 const NO_LONGER_ACTIVE = "This link is no longer active. It may have expired or been revoked by the patient.";
 
+// Scope resolution shared by resolve-share and by the patient-side content
+// preview on "My shared links" (see loadShareContents in myShares.js, which
+// duplicates this logic client-side since it already has the visit list).
+function resolveVisitsForScope(link, ownerVisits) {
+  if (link.scope === "single_visit") {
+    return ownerVisits.filter((v) => v.id === link.visit_id);
+  }
+  if (link.scope === "selected_visits") {
+    const ids = Array.isArray(link.visit_ids) ? link.visit_ids : [];
+    return ownerVisits.filter((v) => ids.includes(v.id));
+  }
+  return ownerVisits; // full_history
+}
+
 const functions = {
   async invoke(name, { body } = {}) {
     if (name === "extract-record") {
@@ -309,7 +330,7 @@ const functions = {
       if (link.revoked || expired) return { data: { active: false, message: NO_LONGER_ACTIVE }, error: null };
 
       const ownerVisits = readTable("visits").filter((v) => v.user_id === link.user_id);
-      const visits = link.scope === "single_visit" ? ownerVisits.filter((v) => v.id === link.visit_id) : ownerVisits;
+      const visits = resolveVisitsForScope(link, ownerVisits);
 
       const visitsWithImages = await Promise.all(
         visits.map(async (v) => {

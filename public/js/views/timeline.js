@@ -33,32 +33,90 @@ export async function render(app) {
     return;
   }
 
-  const cards = visits
-    .map(
-      (v) => `
-      <a class="card visit-card" href="#/visit/${v.id}">
-        <div class="visit-card__row">
-          <span class="visit-card__date">${formatDate(v.visit_date)}</span>
+  let selectMode = false;
+  const selectedIds = new Set();
+
+  function paint() {
+    const canSelect = visits.length >= 2;
+
+    const cards = visits
+      .map((v) => {
+        const inner = `
+          <div class="visit-card__row">
+            <span class="visit-card__date">${formatDate(v.visit_date)}</span>
+          </div>
+          <div class="visit-card__hospital">${escapeHtml(v.hospital_name) || "Hospital not recorded"}</div>
+          <p class="visit-card__summary">${escapeHtml(v.diagnosis_summary) || "No summary recorded"}</p>
+        `;
+
+        if (selectMode) {
+          const checked = selectedIds.has(v.id);
+          return `
+            <label class="card visit-card visit-card--selectable ${checked ? "is-checked" : ""}" data-visit-id="${v.id}">
+              <input type="checkbox" class="visit-select-checkbox" data-visit-id="${v.id}" ${checked ? "checked" : ""} />
+              <div class="visit-card__content">${inner}</div>
+            </label>
+          `;
+        }
+
+        return `
+          <a class="card visit-card" href="#/visit/${v.id}">${inner}</a>
+        `;
+      })
+      .join("");
+
+    const selectToggle = canSelect
+      ? `<button class="btn btn-ghost" id="select-toggle-btn">${selectMode ? "Cancel" : "Select"}</button>`
+      : "";
+
+    content.innerHTML = `
+      <div class="flex-between" style="margin-bottom:20px;">
+        <div>
+          <h1 class="page-title mt-0">Your timeline</h1>
+          <p class="page-subtitle mb-0">${visits.length} visit${visits.length === 1 ? "" : "s"} recorded</p>
         </div>
-        <div class="visit-card__hospital">${escapeHtml(v.hospital_name) || "Hospital not recorded"}</div>
-        <p class="visit-card__summary">${escapeHtml(v.diagnosis_summary) || "No summary recorded"}</p>
-      </a>
-    `,
-    )
-    .join("");
-
-  content.innerHTML = `
-    <div class="flex-between" style="margin-bottom:20px;">
-      <div>
-        <h1 class="page-title mt-0">Your timeline</h1>
-        <p class="page-subtitle mb-0">${visits.length} visit${visits.length === 1 ? "" : "s"} recorded</p>
+        ${selectToggle}
       </div>
-    </div>
-    <div class="stack" style="gap:0;">${cards}</div>
-    <div style="position:sticky;bottom:16px;margin-top:24px;">
-      <button class="btn btn-primary btn-block" id="upload-btn">+ Upload a visit</button>
-    </div>
-  `;
+      <div class="stack" style="gap:0;">${cards}</div>
+      <div style="position:sticky;bottom:16px;margin-top:24px;">
+        ${
+          selectMode
+            ? `<button class="btn btn-primary btn-block" id="share-selected-btn" ${selectedIds.size === 0 ? "disabled" : ""}>Share ${selectedIds.size} selected</button>`
+            : `<button class="btn btn-primary btn-block" id="upload-btn">+ Upload a visit</button>`
+        }
+      </div>
+    `;
 
-  document.getElementById("upload-btn").addEventListener("click", () => navigate("/upload"));
+    const selectBtn = document.getElementById("select-toggle-btn");
+    if (selectBtn) {
+      selectBtn.addEventListener("click", () => {
+        selectMode = !selectMode;
+        if (!selectMode) selectedIds.clear();
+        paint();
+      });
+    }
+
+    if (selectMode) {
+      content.querySelectorAll(".visit-select-checkbox").forEach((cb) => {
+        cb.addEventListener("change", () => {
+          const id = cb.dataset.visitId;
+          if (cb.checked) selectedIds.add(id);
+          else selectedIds.delete(id);
+          paint();
+        });
+      });
+      const shareBtn = document.getElementById("share-selected-btn");
+      if (shareBtn) {
+        shareBtn.addEventListener("click", () => {
+          if (selectedIds.size === 0) return;
+          navigate(`/share?ids=${Array.from(selectedIds).join(",")}`);
+        });
+      }
+    } else {
+      const uploadBtn = document.getElementById("upload-btn");
+      if (uploadBtn) uploadBtn.addEventListener("click", () => navigate("/upload"));
+    }
+  }
+
+  paint();
 }

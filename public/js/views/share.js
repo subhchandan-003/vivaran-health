@@ -1,6 +1,6 @@
 import { supabase } from "../dataClient.js";
 import { mountPage } from "../util/layout.js";
-import { escapeHtml } from "../util/dom.js";
+import { escapeHtml, formatDate } from "../util/dom.js";
 import { navigate } from "../router.js";
 
 function randomToken() {
@@ -8,12 +8,28 @@ function randomToken() {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
 
-export async function render(app, visitId) {
+// visitId: single visit, from the "Share" button on a visit's detail page.
+// visitIds: an array of visit ids, from multi-select on the timeline. When
+// present, this takes priority and the scope is fixed to "selected_visits" —
+// there's no scope switcher in that case, the patient already chose exactly
+// which records to include.
+export async function render(app, visitId, visitIds) {
   mountPage(app, { title: "Share", showBack: true }, `<div class="loading-row"><span class="spinner"></span> Loading...</div>`);
   const content = document.getElementById("page-content");
 
+  const multiMode = Array.isArray(visitIds) && visitIds.length > 0;
+
   let visitLabel = null;
-  if (visitId) {
+  let selectedVisits = [];
+
+  if (multiMode) {
+    const { data: visits } = await supabase.from("visits").select("id, hospital_name, visit_date").in("id", visitIds);
+    selectedVisits = visits || [];
+    if (selectedVisits.length === 0) {
+      content.innerHTML = `<div class="alert alert-error">These visits could not be found.</div>`;
+      return;
+    }
+  } else if (visitId) {
     const { data: visit } = await supabase
       .from("visits")
       .select("hospital_name, visit_date")
@@ -26,28 +42,50 @@ export async function render(app, visitId) {
     visitLabel = visit.hospital_name || "this visit";
   }
 
-  let scope = visitId ? "single_visit" : "full_history";
+  let scope = multiMode ? "selected_visits" : visitId ? "single_visit" : "full_history";
 
   function paintForm() {
+    const scopeRow = multiMode
+      ? `
+        <div class="card" style="margin-bottom:18px;">
+          <div style="font-weight:600;margin-bottom:8px;">${selectedVisits.length} record${selectedVisits.length === 1 ? "" : "s"} selected</div>
+          <div class="stack" style="gap:6px;">
+            ${selectedVisits
+              .map(
+                (v) => `
+              <div style="display:flex;justify-content:space-between;font-size:0.88rem;color:var(--ink-700);">
+                <span>${escapeHtml(v.hospital_name) || "Hospital not recorded"}</span>
+                <span style="color:var(--ink-500);">${formatDate(v.visit_date)}</span>
+              </div>
+            `,
+              )
+              .join("")}
+          </div>
+        </div>
+      `
+      : `
+        <div class="share-scope-row">
+          <div class="share-scope-option ${scope === "single_visit" ? "selected" : ""}" data-scope="single_visit" ${!visitId ? "aria-disabled='true'" : ""}>
+            Single visit${visitLabel ? `<div style="font-weight:400;font-size:0.78rem;margin-top:4px;">${escapeHtml(visitLabel)}</div>` : ""}
+          </div>
+          <div class="share-scope-option ${scope === "full_history" ? "selected" : ""}" data-scope="full_history">
+            Full history
+          </div>
+        </div>
+      `;
+
     content.innerHTML = `
       <h1 class="page-title">Share a record</h1>
       <p class="page-subtitle">Generate a link and QR code a doctor can open instantly — no login, no app install.</p>
 
-      <div class="share-scope-row">
-        <div class="share-scope-option ${scope === "single_visit" ? "selected" : ""}" data-scope="single_visit" ${!visitId ? "aria-disabled='true'" : ""}>
-          Single visit${visitLabel ? `<div style="font-weight:400;font-size:0.78rem;margin-top:4px;">${escapeHtml(visitLabel)}</div>` : ""}
-        </div>
-        <div class="share-scope-option ${scope === "full_history" ? "selected" : ""}" data-scope="full_history">
-          Full history
-        </div>
-      </div>
+      ${scopeRow}
 
       <div class="alert alert-info">This link expires automatically in 48 hours, or you can revoke it any time from "My shared links".</div>
 
       <button class="btn btn-primary btn-block" id="generate-btn">Generate share link</button>
     `;
 
-    if (visitId) {
+    if (!multiMode && visitId) {
       content.querySelectorAll(".share-scope-option").forEach((el) => {
         el.addEventListener("click", () => {
           scope = el.dataset.scope;
@@ -73,6 +111,7 @@ export async function render(app, visitId) {
         token,
         scope,
         visit_id: scope === "single_visit" ? visitId : null,
+        visit_ids: scope === "selected_visits" ? visitIds : null,
         user_id: userData.user.id,
         expires_at: expiresAt,
       });

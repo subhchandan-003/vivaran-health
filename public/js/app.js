@@ -66,9 +66,10 @@ route("/share/:visitId", requireAuth(async (app, params) => {
   await mod.render(app, params.visitId);
 }));
 
-route("/share", requireAuth(async (app) => {
+route("/share", requireAuth(async (app, params, query) => {
   const mod = await import("./views/share.js");
-  await mod.render(app, null);
+  const ids = query.ids ? query.ids.split(",").filter(Boolean) : null;
+  await mod.render(app, null, ids);
 }));
 
 route("/shares", requireAuth(async (app) => {

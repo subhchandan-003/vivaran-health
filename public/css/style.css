@@ -130,19 +130,20 @@ a { color: var(--teal-600); }
 }
 
 .app-header__logo {
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: 10px;
-  background: linear-gradient(150deg, var(--teal-400), var(--teal-700));
+  background: var(--paper-0);
+  border: 1px solid var(--border);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: white;
-  font-family: "Lexend", sans-serif;
-  font-weight: 800;
-  font-size: 0.95rem;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.35) inset, 0 6px 14px -6px rgba(28, 109, 100, 0.55);
+  padding: 4px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.6) inset, 0 4px 10px -6px rgba(28, 109, 100, 0.35);
+  flex-shrink: 0;
 }
+.app-header__logo img { width: 100%; height: 100%; object-fit: contain; display: block; }
+.app-header__logo--lg { width: 52px; height: 52px; border-radius: 14px; padding: 6px; }
 
 .app-header__actions {
   display: flex;
@@ -304,6 +305,27 @@ a { color: var(--teal-600); }
   color: var(--ink-700);
   font-size: 0.95rem;
   margin: 0;
+}
+
+.visit-card--selectable {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  cursor: pointer;
+}
+.visit-card--selectable .visit-select-checkbox {
+  width: 22px;
+  height: 22px;
+  margin-top: 2px;
+  accent-color: var(--teal-500);
+  flex-shrink: 0;
+  cursor: pointer;
+}
+.visit-card--selectable .visit-card__content { flex: 1; min-width: 0; }
+.visit-card--selectable.is-checked {
+  border-color: var(--teal-500);
+  background: var(--teal-50);
+  box-shadow: 0 1px 3px rgba(47, 158, 143, 0.18) inset;
 }
 
 /* ---------- Forms ---------- */

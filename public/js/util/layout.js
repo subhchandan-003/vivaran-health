@@ -21,7 +21,7 @@ export function renderShell({ title = "Vivaran Health", showBack = false, showAc
         <div style="display:flex;align-items:center;gap:8px;">
           ${backBtn}
           <a href="#/timeline" class="app-header__brand">
-            <span class="app-header__logo">V</span>
+            <span class="app-header__logo"><img src="assets/logo.png" alt="" /></span>
             <span>Vivaran Health</span>
           </a>
         </div>

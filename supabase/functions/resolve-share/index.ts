@@ -36,7 +36,7 @@ Deno.serve(async (req: Request) => {
 
     const { data: link, error: linkError } = await supabase
       .from("share_links")
-      .select("id, scope, visit_id, user_id, expires_at, revoked, access_log")
+      .select("id, scope, visit_id, visit_ids, user_id, expires_at, revoked, access_log")
       .eq("token", token)
       .maybeSingle();
 
@@ -65,6 +65,8 @@ Deno.serve(async (req: Request) => {
 
     if (link.scope === "single_visit") {
       query = query.eq("id", link.visit_id);
+    } else if (link.scope === "selected_visits") {
+      query = query.in("id", link.visit_ids ?? []);
     }
 
     const { data: visits, error: visitsError } = await query;
