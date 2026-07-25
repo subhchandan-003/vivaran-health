@@ -37,10 +37,7 @@ export async function render(app) {
             <div class="alert alert-info" style="display:flex;flex-direction:column;gap:8px;">
               <div><strong>Local demo mode</strong> — skip typing, use the test account:</div>
               <div style="font-size:0.78rem;color:var(--ink-500);">${escapeHtml(TEST_EMAIL)} &nbsp;/&nbsp; ${escapeHtml(TEST_PASSWORD)}</div>
-              <div style="display:flex;gap:8px;">
-                <button type="button" class="btn btn-secondary" id="quick-signup-btn" style="flex:1;">Quick sign up</button>
-                <button type="button" class="btn btn-secondary" id="quick-login-btn" style="flex:1;">Quick log in</button>
-              </div>
+              <button type="button" class="btn btn-secondary btn-block" id="quick-login-btn">Quick log in</button>
             </div>
           ` : ""}
 
@@ -87,44 +84,29 @@ export async function render(app) {
 
     app.querySelector("#auth-form").addEventListener("submit", handleSubmit);
 
-    const quickSignupBtn = app.querySelector("#quick-signup-btn");
-    if (quickSignupBtn) quickSignupBtn.addEventListener("click", quickSignUp);
-
     const quickLoginBtn = app.querySelector("#quick-login-btn");
     if (quickLoginBtn) quickLoginBtn.addEventListener("click", quickLogIn);
   }
 
-  async function quickSignUp() {
-    const btn = document.getElementById("quick-signup-btn");
-    btn.disabled = true;
-    btn.textContent = "Setting up...";
-    try {
-      localStorage.setItem(
-        PENDING_CONSENT_KEY,
-        JSON.stringify({ name: TEST_NAME, consent_given: true, consent_timestamp: new Date().toISOString(), stashed_at: Date.now() }),
-      );
-      const { error } = await supabase.auth.signUp({ email: TEST_EMAIL, password: TEST_PASSWORD });
-      if (error) {
-        // Test account already exists from a previous run — log in instead.
-        const { error: loginError } = await supabase.auth.signInWithPassword({ email: TEST_EMAIL, password: TEST_PASSWORD });
-        if (loginError) throw loginError;
-      }
-      navigate("/timeline");
-    } catch (err) {
-      paint(err.message || "Could not set up the test account.");
-    }
-  }
-
+  // One button that just works whether or not the test account exists yet:
+  // tries logging in first, and silently provisions the account on first use.
   async function quickLogIn() {
     const btn = document.getElementById("quick-login-btn");
     btn.disabled = true;
     btn.textContent = "Logging in...";
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email: TEST_EMAIL, password: TEST_PASSWORD });
-      if (error) throw error;
+      const { error: loginError } = await supabase.auth.signInWithPassword({ email: TEST_EMAIL, password: TEST_PASSWORD });
+      if (loginError) {
+        localStorage.setItem(
+          PENDING_CONSENT_KEY,
+          JSON.stringify({ name: TEST_NAME, consent_given: true, consent_timestamp: new Date().toISOString(), stashed_at: Date.now() }),
+        );
+        const { error: signupError } = await supabase.auth.signUp({ email: TEST_EMAIL, password: TEST_PASSWORD });
+        if (signupError) throw signupError;
+      }
       navigate("/timeline");
     } catch (err) {
-      paint(err.message || "No test account yet — use Quick sign up first.");
+      paint(err.message || "Could not log in with the test account.");
     }
   }
 
