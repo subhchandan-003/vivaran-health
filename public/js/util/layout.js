@@ -1,4 +1,4 @@
-import { supabase } from "../supabaseClient.js";
+import { supabase } from "../dataClient.js";
 import { navigate } from "../router.js";
 
 // One persistent, working support contact — replace with a real inbox/WhatsApp

@@ -9,12 +9,18 @@
 <body>
   <div id="app"></div>
 
-  <!-- Supabase JS client (CDN, no build step) -->
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <!-- Client-side QR code generation (CDN, no build step) -->
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.4/build/qrcode.min.js"></script>
 
-  <script src="js/config.js"></script>
+  <!--
+    Running in local/offline mode (see public/js/dataClient.js) — no Supabase
+    project needed right now. To reconnect Supabase later, uncomment these two
+    tags and copy public/js/config.example.js to public/js/config.js:
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+    <script src="js/config.js"></script>
+  -->
+
   <script type="module" src="js/app.js"></script>
 </body>
 </html>

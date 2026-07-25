@@ -1,4 +1,4 @@
-import { supabase } from "../supabaseClient.js";
+import { supabase } from "../dataClient.js";
 import { mountPage } from "../util/layout.js";
 import { escapeHtml } from "../util/dom.js";
 import { navigate } from "../router.js";
@@ -107,8 +107,9 @@ export async function render(app, visitId) {
       </div>
     `;
 
-    QRCode.toCanvas(document.getElementById("qr-canvas"), shareUrl, { width: 220, margin: 1, color: { dark: "#1f2937" } });
-
+    // Wire up all buttons FIRST — QR generation depends on a CDN script that
+    // can fail to load (network hiccup, ad-blocker, offline). If that throws,
+    // it must never take Copy/My shared links/Done down with it.
     document.getElementById("copy-btn").addEventListener("click", async () => {
       const input = document.getElementById("share-url");
       input.select();
@@ -124,6 +125,14 @@ export async function render(app, visitId) {
 
     document.getElementById("view-shares-btn").addEventListener("click", () => navigate("/shares"));
     document.getElementById("done-btn").addEventListener("click", () => navigate(visitId ? `/visit/${visitId}` : "/timeline"));
+
+    try {
+      if (typeof QRCode === "undefined") throw new Error("QR code library did not load");
+      QRCode.toCanvas(document.getElementById("qr-canvas"), shareUrl, { width: 220, margin: 1, color: { dark: "#1f2937" } });
+    } catch {
+      document.getElementById("qr-canvas").outerHTML =
+        '<p style="color:var(--ink-500);font-size:0.85rem;">QR code unavailable right now — the link below still works.</p>';
+    }
   }
 
   paintForm();

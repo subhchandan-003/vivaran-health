@@ -1,4 +1,4 @@
-import { supabase } from "../supabaseClient.js";
+import { supabase } from "../dataClient.js";
 import { mountPage } from "../util/layout.js";
 import { escapeHtml } from "../util/dom.js";
 import { navigate } from "../router.js";
@@ -71,7 +71,10 @@ export async function render(app) {
       extracted = data;
       confidenceFlags = Array.isArray(data.confidence_flags) ? data.confidence_flags : [];
       medicines = Array.isArray(data.medicines) ? data.medicines : [];
-      paintForm(previewUrl);
+      const infoMessage = data.local_mode
+        ? "Running in local demo mode — AI extraction is simulated. Enter the details below yourself; connect Supabase later for real extraction."
+        : "";
+      paintForm(previewUrl, "", infoMessage);
     } catch (err) {
       // Extraction failing should never block the patient — fall back to a
       // blank editable form so they can enter details manually.
@@ -117,13 +120,14 @@ export async function render(app) {
       .join("");
   }
 
-  function paintForm(previewUrl, warningMessage = "") {
+  function paintForm(previewUrl, warningMessage = "", infoMessage = "") {
     mountPage(
       app,
       { title: "Review", showBack: true },
       `
       <h1 class="page-title">Review the details</h1>
       <p class="page-subtitle">Correct anything that's wrong before saving. Fields highlighted in amber were low-confidence reads.</p>
+      ${infoMessage ? `<div class="alert alert-info">${escapeHtml(infoMessage)}</div>` : ""}
       ${warningMessage ? `<div class="alert alert-warn">${escapeHtml(warningMessage)}</div>` : ""}
       <img class="image-preview" src="${previewUrl}" alt="Selected document" />
 

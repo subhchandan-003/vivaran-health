@@ -1,4 +1,4 @@
-import { supabase } from "./supabaseClient.js";
+import { supabase } from "./dataClient.js";
 import { route, setNotFound, startRouter, navigate } from "./router.js";
 import { render as renderAuth, getPendingConsent } from "./views/auth.js";
 
