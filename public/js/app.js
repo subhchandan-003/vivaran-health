@@ -1,6 +1,7 @@
 import { supabase } from "./dataClient.js";
 import { route, setNotFound, startRouter, navigate } from "./router.js";
 import { render as renderAuth, getPendingConsent } from "./views/auth.js";
+import { icons } from "./util/icons.js";
 
 let currentSession = null;
 
@@ -82,7 +83,7 @@ route("/doctor", async (app, params, query) => {
 
 setNotFound(() => `
   <div class="empty-state">
-    <div class="empty-state__icon">&#129300;</div>
+    <div class="empty-state__icon">${icons.help}</div>
     <h3>Page not found</h3>
     <p><a href="#/timeline">Go to your timeline</a></p>
   </div>

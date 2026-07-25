@@ -2,6 +2,7 @@ import { supabase } from "../dataClient.js";
 import { mountPage } from "../util/layout.js";
 import { escapeHtml, formatDate } from "../util/dom.js";
 import { navigate } from "../router.js";
+import { icons } from "../util/icons.js";
 
 export async function render(app) {
   mountPage(app, { title: "Timeline" }, `<div class="loading-row"><span class="spinner"></span> Loading your timeline...</div>`);
@@ -22,7 +23,7 @@ export async function render(app) {
   if (!visits || visits.length === 0) {
     content.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state__icon">&#128203;</div>
+        <div class="empty-state__icon">${icons.document}</div>
         <h3>No records yet</h3>
         <p>Upload a photo of a prescription or report to build your health timeline.</p>
         <button class="btn btn-primary" id="empty-upload-btn" style="margin-top:10px;">Upload your first record</button>

@@ -2,6 +2,7 @@ import { supabase } from "../dataClient.js";
 import { mountPage } from "../util/layout.js";
 import { escapeHtml, formatDate } from "../util/dom.js";
 import { navigate } from "../router.js";
+import { icons } from "../util/icons.js";
 
 export async function render(app, visitId) {
   mountPage(app, { title: "Visit", showBack: true }, `<div class="loading-row"><span class="spinner"></span> Loading...</div>`);
@@ -61,8 +62,8 @@ export async function render(app, visitId) {
     ` : ""}
 
     ${visit.raw_file_path ? `
-      <button class="image-toggle" id="toggle-image-btn" style="margin-top:20px;">
-        <span>View original document</span><span>&#8595;</span>
+      <button class="image-toggle" id="toggle-image-btn" aria-expanded="false" style="margin-top:20px;">
+        <span>View original document</span><span class="icon">${icons.chevronDown}</span>
       </button>
       <div id="image-container" style="display:none;margin-top:12px;"></div>
     ` : ""}
@@ -80,6 +81,7 @@ export async function render(app, visitId) {
       const container = document.getElementById("image-container");
       const isHidden = container.style.display === "none";
       container.style.display = isHidden ? "block" : "none";
+      toggleBtn.setAttribute("aria-expanded", String(isHidden));
       if (isHidden && !loaded) {
         const { data: signed } = await supabase.storage
           .from("documents")

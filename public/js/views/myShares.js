@@ -2,6 +2,7 @@ import { supabase } from "../dataClient.js";
 import { mountPage } from "../util/layout.js";
 import { escapeHtml, formatDateTime } from "../util/dom.js";
 import { navigate } from "../router.js";
+import { icons } from "../util/icons.js";
 
 function statusOf(link) {
   if (link.revoked) return { label: "Revoked", cls: "badge-muted" };
@@ -26,7 +27,7 @@ export async function render(app) {
   if (!links || links.length === 0) {
     content.innerHTML = `
       <div class="empty-state">
-        <div class="empty-state__icon">&#128279;</div>
+        <div class="empty-state__icon">${icons.link}</div>
         <h3>No shared links yet</h3>
         <p>When you share a visit or your full history, it will show up here so you can track and revoke access.</p>
         <button class="btn btn-primary" id="back-timeline-btn" style="margin-top:10px;">Back to timeline</button>

@@ -2,6 +2,7 @@ import { supabase } from "../dataClient.js";
 import { mountPage } from "../util/layout.js";
 import { escapeHtml } from "../util/dom.js";
 import { navigate } from "../router.js";
+import { icons } from "../util/icons.js";
 
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -31,7 +32,7 @@ export async function render(app) {
       <p class="page-subtitle">Photograph a prescription or report — we'll pull out the details for you to review.</p>
       ${errorMessage ? `<div class="alert alert-error">${escapeHtml(errorMessage)}</div>` : ""}
       <label class="upload-dropzone" for="file-input">
-        <div style="font-size:2rem;">&#128248;</div>
+        <div class="icon">${icons.camera}</div>
         <div style="font-weight:600;color:var(--ink-900);margin-top:8px;">Tap to choose a photo or PDF page image</div>
         <div style="font-size:0.82rem;margin-top:4px;">JPEG, PNG, or WEBP</div>
       </label>
@@ -112,7 +113,7 @@ export async function render(app) {
         <div style="display:flex;gap:8px;">
           <input type="text" class="med-name" placeholder="Medicine name" value="${escapeHtml(m.name || "")}" style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;" />
           <input type="text" class="med-dosage" placeholder="Dosage" value="${escapeHtml(m.dosage || "")}" style="flex:1;padding:10px 12px;border:1.5px solid var(--border);border-radius:10px;" />
-          <button type="button" class="icon-btn med-remove" aria-label="Remove medicine">&#10005;</button>
+          <button type="button" class="icon-btn med-remove" aria-label="Remove medicine">${icons.close}</button>
         </div>
       </div>
     `,

@@ -1,5 +1,6 @@
 import { supabase } from "../dataClient.js";
 import { navigate } from "../router.js";
+import { icons } from "./icons.js";
 
 // One persistent, working support contact — replace with a real inbox/WhatsApp
 // number before sharing this build outside the team.
@@ -7,11 +8,11 @@ const SUPPORT_MAILTO = "mailto:support@vivaranhealth.app?subject=Vivaran%20Healt
 
 export function renderShell({ title = "Vivaran Health", showBack = false, showAccount = true } = {}) {
   const backBtn = showBack
-    ? `<button class="icon-btn" id="nav-back" aria-label="Back">&#8592;</button>`
+    ? `<button class="icon-btn" id="nav-back" aria-label="Back">${icons.chevronLeft}</button>`
     : "";
   const accountBtn = showAccount
-    ? `<button class="icon-btn" id="nav-shares" aria-label="My shared links">&#128279;</button>
-       <button class="icon-btn" id="nav-logout" aria-label="Log out">&#9211;</button>`
+    ? `<button class="icon-btn" id="nav-shares" aria-label="My shared links">${icons.link}</button>
+       <button class="icon-btn" id="nav-logout" aria-label="Log out">${icons.power}</button>`
     : "";
 
   return `

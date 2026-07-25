@@ -1,6 +1,7 @@
 import { supabase } from "../dataClient.js";
 import { escapeHtml, formatDate } from "../util/dom.js";
 import { navigate } from "../router.js";
+import { icons } from "../util/icons.js";
 
 function shellHtml(innerHtml) {
   return `
@@ -36,7 +37,7 @@ export async function render(app, token) {
   if (error || !data || !data.active) {
     app.innerHTML = shellHtml(`
       <div class="empty-state">
-        <div class="empty-state__icon">&#128274;</div>
+        <div class="empty-state__icon">${icons.lock}</div>
         <h3>This link is no longer active</h3>
         <p>${escapeHtml(data?.message) || "It may have expired or been revoked by the patient."}</p>
       </div>
@@ -49,7 +50,7 @@ export async function render(app, token) {
   if (visits.length === 0) {
     app.innerHTML = shellHtml(`
       <div class="empty-state">
-        <div class="empty-state__icon">&#128203;</div>
+        <div class="empty-state__icon">${icons.document}</div>
         <h3>No records in this share</h3>
       </div>
     `);
@@ -67,7 +68,9 @@ export async function render(app, token) {
   document.querySelectorAll("[data-toggle-image]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const container = document.getElementById(btn.dataset.toggleImage);
-      container.style.display = container.style.display === "none" ? "block" : "none";
+      const isHidden = container.style.display === "none";
+      container.style.display = isHidden ? "block" : "none";
+      btn.setAttribute("aria-expanded", String(isHidden));
     });
   });
 }
@@ -109,8 +112,8 @@ function renderVisit(visit) {
       ${visit.notes ? `<h4 style="margin:16px 0 6px;">Notes</h4><p>${escapeHtml(visit.notes)}</p>` : ""}
 
       ${visit.image_url ? `
-        <button class="image-toggle" data-toggle-image="${imageContainerId}" style="margin-top:16px;">
-          <span>View original document</span><span>&#8595;</span>
+        <button class="image-toggle" data-toggle-image="${imageContainerId}" aria-expanded="false" style="margin-top:16px;">
+          <span>View original document</span><span class="icon">${icons.chevronDown}</span>
         </button>
         <div id="${imageContainerId}" style="display:none;margin-top:10px;">
           <img class="image-preview" src="${visit.image_url}" alt="Original document" />
