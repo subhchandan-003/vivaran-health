@@ -91,11 +91,11 @@ export async function render(app) {
           ? `<p style="color:var(--ink-500);text-align:center;padding:24px 0;">${tab === "active" ? "No active shares right now." : "Nothing here yet."}</p>`
           : `<div class="stack">
               ${visible
-                .map((link) => {
+                .map((link, i) => {
                   const status = statusOf(link);
                   const canRevoke = status.active;
                   return `
-                    <div class="card share-link-card" data-link-id="${link.id}">
+                    <div class="card share-link-card" data-link-id="${link.id}" style="--i:${i};">
                       <div class="flex-between">
                         <strong>${scopeLabel(link)}</strong>
                         <span class="badge ${status.cls}">${status.label}</span>
@@ -106,7 +106,7 @@ export async function render(app) {
                       <button class="image-toggle view-contents-btn" data-link-id="${link.id}" aria-expanded="false" style="margin-top:12px;">
                         <span>View contents</span><span class="icon">${icons.chevronDown}</span>
                       </button>
-                      <div class="share-contents" data-link-id="${link.id}" style="display:none;margin-top:10px;"></div>
+                      <div class="share-contents collapse-panel" data-link-id="${link.id}" style="margin-top:10px;"></div>
 
                       ${canRevoke ? `<button class="btn btn-danger btn-block revoke-btn" style="margin-top:12px;">Revoke access</button>` : ""}
                     </div>
@@ -129,10 +129,10 @@ export async function render(app) {
       btn.addEventListener("click", async () => {
         const linkId = btn.dataset.linkId;
         const panel = content.querySelector(`.share-contents[data-link-id="${linkId}"]`);
-        const isHidden = panel.style.display === "none";
-        panel.style.display = isHidden ? "block" : "none";
-        btn.setAttribute("aria-expanded", String(isHidden));
-        if (isHidden && !loaded) {
+        const willOpen = !panel.classList.contains("is-open");
+        panel.classList.toggle("is-open", willOpen);
+        btn.setAttribute("aria-expanded", String(willOpen));
+        if (willOpen && !loaded) {
           panel.innerHTML = `<div class="loading-row" style="padding:16px 0;"><span class="spinner"></span></div>`;
           const link = links.find((l) => l.id === linkId);
           const visits = await loadShareContents(link);

@@ -65,7 +65,7 @@ export async function render(app, visitId) {
       <button class="image-toggle" id="toggle-image-btn" aria-expanded="false" style="margin-top:20px;">
         <span>View original document</span><span class="icon">${icons.chevronDown}</span>
       </button>
-      <div id="image-container" style="display:none;margin-top:12px;"></div>
+      <div id="image-container" class="collapse-panel" style="margin-top:12px;"></div>
     ` : ""}
 
     <div class="action-row">
@@ -79,10 +79,10 @@ export async function render(app, visitId) {
     let loaded = false;
     toggleBtn.addEventListener("click", async () => {
       const container = document.getElementById("image-container");
-      const isHidden = container.style.display === "none";
-      container.style.display = isHidden ? "block" : "none";
-      toggleBtn.setAttribute("aria-expanded", String(isHidden));
-      if (isHidden && !loaded) {
+      const willOpen = !container.classList.contains("is-open");
+      container.classList.toggle("is-open", willOpen);
+      toggleBtn.setAttribute("aria-expanded", String(willOpen));
+      if (willOpen && !loaded) {
         const { data: signed } = await supabase.storage
           .from("documents")
           .createSignedUrl(visit.raw_file_path, 60 * 10);

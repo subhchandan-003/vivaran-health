@@ -40,7 +40,7 @@ export async function render(app) {
     const canSelect = visits.length >= 2;
 
     const cards = visits
-      .map((v) => {
+      .map((v, i) => {
         const inner = `
           <div class="visit-card__row">
             <span class="visit-card__date">${formatDate(v.visit_date)}</span>
@@ -52,7 +52,7 @@ export async function render(app) {
         if (selectMode) {
           const checked = selectedIds.has(v.id);
           return `
-            <label class="card visit-card visit-card--selectable ${checked ? "is-checked" : ""}" data-visit-id="${v.id}">
+            <label class="card visit-card visit-card--selectable ${checked ? "is-checked" : ""}" data-visit-id="${v.id}" style="--i:${i};">
               <input type="checkbox" class="visit-select-checkbox" data-visit-id="${v.id}" ${checked ? "checked" : ""} />
               <div class="visit-card__content">${inner}</div>
             </label>
@@ -60,7 +60,7 @@ export async function render(app) {
         }
 
         return `
-          <a class="card visit-card" href="#/visit/${v.id}">${inner}</a>
+          <a class="card visit-card" href="#/visit/${v.id}" style="--i:${i};">${inner}</a>
         `;
       })
       .join("");

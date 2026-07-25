@@ -57,7 +57,7 @@ export async function render(app, token) {
     return;
   }
 
-  const visitsHtml = visits.map(renderVisit).join("");
+  const visitsHtml = visits.map((v, i) => renderVisit(v, i)).join("");
 
   app.innerHTML = shellHtml(`
     <h1 class="page-title">Shared health record${visits.length > 1 ? "s" : ""}</h1>
@@ -68,14 +68,14 @@ export async function render(app, token) {
   document.querySelectorAll("[data-toggle-image]").forEach((btn) => {
     btn.addEventListener("click", () => {
       const container = document.getElementById(btn.dataset.toggleImage);
-      const isHidden = container.style.display === "none";
-      container.style.display = isHidden ? "block" : "none";
-      btn.setAttribute("aria-expanded", String(isHidden));
+      const willOpen = !container.classList.contains("is-open");
+      container.classList.toggle("is-open", willOpen);
+      btn.setAttribute("aria-expanded", String(willOpen));
     });
   });
 }
 
-function renderVisit(visit) {
+function renderVisit(visit, i = 0) {
   const medicines = Array.isArray(visit.medicines) ? visit.medicines : [];
   const medicineRows = medicines.length
     ? medicines
@@ -93,7 +93,7 @@ function renderVisit(visit) {
   const imageContainerId = `img-${visit.id}`;
 
   return `
-    <div class="card" style="margin-bottom:16px;">
+    <div class="card" style="margin-bottom:16px;animation:rise 0.4s var(--ease) both;animation-delay:calc(${i} * 60ms);">
       <div class="visit-card__date">${formatDate(visit.visit_date)}</div>
       <div class="visit-card__hospital">${escapeHtml(visit.hospital_name) || "Hospital not recorded"}</div>
 
@@ -115,7 +115,7 @@ function renderVisit(visit) {
         <button class="image-toggle" data-toggle-image="${imageContainerId}" aria-expanded="false" style="margin-top:16px;">
           <span>View original document</span><span class="icon">${icons.chevronDown}</span>
         </button>
-        <div id="${imageContainerId}" style="display:none;margin-top:10px;">
+        <div id="${imageContainerId}" class="collapse-panel" style="margin-top:10px;">
           <img class="image-preview" src="${visit.image_url}" alt="Original document" />
         </div>
       ` : ""}

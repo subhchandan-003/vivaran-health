@@ -37,12 +37,40 @@
   --danger-100: #fbe6e4;
   --warn-500: #b8860b;
   --warn-100: #fdf3d9;
+
+  /* Realtime-Colors-style 5-role semantic mapping — named aliases over the
+     scale above, so the *intent* of each color is explicit: one primary,
+     one secondary, one accent, kept to a strict role each rather than
+     reached for interchangeably. */
+  --color-text: var(--ink-900);
+  --color-text-muted: var(--ink-500);
+  --color-background: var(--paper-50);
+  --color-primary: var(--teal-500);
+  --color-secondary: var(--teal-100);
+  --color-accent: var(--gold-400);
+
+  /* Spacing scale — 4px base, matching the convention widely used by
+     production design systems (Linear, etc., per Refero's style library).
+     Not yet threaded through every rule below, but used for new/updated
+     ones, and this is the scale to converge the rest onto over time. */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+
   --radius-md: 12px;
   --radius-lg: 18px;
   --radius-xl: 26px;
   --shadow-sm: 0 1px 2px rgba(31, 41, 55, 0.06);
   --shadow-md: 0 10px 30px -10px rgba(28, 109, 100, 0.22);
   --shadow-lg: 0 24px 60px -20px rgba(28, 109, 100, 0.32);
+  --shadow-xl: 0 36px 80px -24px rgba(28, 109, 100, 0.4);
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -273,6 +301,8 @@ a { color: var(--teal-600); }
   display: block;
   text-decoration: none;
   color: inherit;
+  animation: rise 0.4s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
 }
 .visit-card:hover {
   box-shadow: 0 1px 2px rgba(31, 41, 55, 0.05), 0 18px 34px -16px rgba(47, 158, 143, 0.35);
@@ -417,7 +447,28 @@ a { color: var(--teal-600); }
 }
 
 .badge-warn { background: var(--warn-100); color: var(--warn-500); }
-.badge-teal { background: linear-gradient(135deg, var(--teal-100), var(--teal-50)); color: var(--teal-700); border: 1px solid rgba(47, 158, 143, 0.22); }
+.badge-teal {
+  background: linear-gradient(135deg, var(--teal-100), var(--teal-50));
+  color: var(--teal-700);
+  border: 1px solid rgba(47, 158, 143, 0.22);
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.badge-teal::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--teal-500);
+  box-shadow: 0 0 0 0 rgba(47, 158, 143, 0.5);
+  animation: pulse-dot 2s var(--ease) infinite;
+}
+@keyframes pulse-dot {
+  0% { box-shadow: 0 0 0 0 rgba(47, 158, 143, 0.45); }
+  70% { box-shadow: 0 0 0 5px rgba(47, 158, 143, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(47, 158, 143, 0); }
+}
 .badge-muted { background: var(--paper-100); color: var(--ink-500); }
 
 /* ---------- Empty states ---------- */
@@ -687,7 +738,11 @@ a { color: var(--teal-600); }
   box-shadow: 0 1px 3px rgba(47, 158, 143, 0.18) inset;
 }
 
-.share-link-card { position: relative; }
+.share-link-card {
+  position: relative;
+  animation: rise 0.4s var(--ease) both;
+  animation-delay: calc(var(--i, 0) * 45ms);
+}
 .share-link-card .badge { margin-left: 8px; }
 
 /* ---------- Modal ---------- */
@@ -771,6 +826,22 @@ a { color: var(--teal-600); }
 .image-toggle .icon { transition: transform 0.2s var(--ease); }
 .image-toggle[aria-expanded="true"] .icon { transform: rotate(180deg); }
 
+/* Smooth expand/collapse — used for the original-document panel and the
+   share "view contents" panel, instead of an instant display:none/block
+   snap. max-height is capped generously rather than measured, which is
+   enough for this app's content (one image, or a short visit list). */
+.collapse-panel {
+  display: block;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition: max-height 0.35s var(--ease), opacity 0.25s var(--ease);
+}
+.collapse-panel.is-open {
+  max-height: 900px;
+  opacity: 1;
+}
+
 /* ---------- Footer / support link ---------- */
 
 .app-footer {
@@ -800,6 +871,8 @@ input:focus-visible,
 textarea:focus-visible {
   outline: 2px solid var(--teal-500);
   outline-offset: 2px;
+  border-radius: 6px;
+  box-shadow: 0 0 0 5px var(--teal-100);
 }
 
 @media (prefers-reduced-motion: reduce) {
