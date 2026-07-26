@@ -5,7 +5,7 @@ import { navigate } from "../router.js";
 import { icons } from "../util/icons.js";
 
 export async function render(app) {
-  mountPage(app, { title: "Timeline" }, `<div class="loading-row"><span class="spinner"></span> Loading your timeline...</div>`);
+  mountPage(app, { title: "Timeline", wide: true }, `<div class="loading-row"><span class="spinner"></span> Loading your timeline...</div>`);
 
   const { data: visits, error } = await supabase
     .from("visits")
@@ -77,7 +77,7 @@ export async function render(app) {
         </div>
         ${selectToggle}
       </div>
-      <div class="stack" style="gap:0;">${cards}</div>
+      <div class="card-grid">${cards}</div>
       <div style="position:sticky;bottom:16px;margin-top:24px;">
         ${
           selectMode

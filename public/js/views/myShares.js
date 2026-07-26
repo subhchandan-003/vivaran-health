@@ -44,7 +44,7 @@ async function loadShareContents(link) {
 }
 
 export async function render(app) {
-  mountPage(app, { title: "My shared links", showBack: true }, `<div class="loading-row"><span class="spinner"></span> Loading...</div>`);
+  mountPage(app, { title: "My shared links", showBack: true, wide: true }, `<div class="loading-row"><span class="spinner"></span> Loading...</div>`);
   const content = document.getElementById("page-content");
 
   const { data: links, error } = await supabase
@@ -89,7 +89,7 @@ export async function render(app) {
       ${
         visible.length === 0
           ? `<p style="color:var(--ink-500);text-align:center;padding:24px 0;">${tab === "active" ? "No active shares right now." : "Nothing here yet."}</p>`
-          : `<div class="stack">
+          : `<div class="card-grid">
               ${visible
                 .map((link, i) => {
                   const status = statusOf(link);

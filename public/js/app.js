@@ -56,6 +56,11 @@ route("/upload", requireAuth(async (app) => {
   await mod.render(app);
 }));
 
+route("/analytics", requireAuth(async (app) => {
+  const mod = await import("./views/analytics.js");
+  await mod.render(app);
+}));
+
 route("/visit/:id", requireAuth(async (app, params) => {
   const mod = await import("./views/visitDetail.js");
   await mod.render(app, params.id);

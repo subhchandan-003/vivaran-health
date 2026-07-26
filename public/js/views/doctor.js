@@ -3,11 +3,11 @@ import { escapeHtml, formatDate } from "../util/dom.js";
 import { navigate } from "../router.js";
 import { icons } from "../util/icons.js";
 
-function shellHtml(innerHtml) {
+function shellHtml(innerHtml, wide = false) {
   return `
     <div class="doctor-shell">
       <div class="doctor-banner">Vivaran Health — shared record viewer</div>
-      <main class="page"><div class="container">${innerHtml}</div></main>
+      <main class="page"><div class="container ${wide ? "container--wide" : ""}">${innerHtml}</div></main>
     </div>
   `;
 }
@@ -59,11 +59,14 @@ export async function render(app, token) {
 
   const visitsHtml = visits.map((v, i) => renderVisit(v, i)).join("");
 
-  app.innerHTML = shellHtml(`
+  app.innerHTML = shellHtml(
+    `
     <h1 class="page-title">Shared health record${visits.length > 1 ? "s" : ""}</h1>
     <div class="disclaimer-note">Patient-reported, not clinically verified.</div>
-    ${visitsHtml}
-  `);
+    <div class="${visits.length > 1 ? "card-grid" : ""}">${visitsHtml}</div>
+  `,
+    visits.length > 1,
+  );
 
   document.querySelectorAll("[data-toggle-image]").forEach((btn) => {
     btn.addEventListener("click", () => {
@@ -93,7 +96,7 @@ function renderVisit(visit, i = 0) {
   const imageContainerId = `img-${visit.id}`;
 
   return `
-    <div class="card" style="margin-bottom:16px;animation:rise 0.4s var(--ease) both;animation-delay:calc(${i} * 60ms);">
+    <div class="card" style="animation:rise 0.4s var(--ease) both;animation-delay:calc(${i} * 60ms);">
       <div class="visit-card__date">${formatDate(visit.visit_date)}</div>
       <div class="visit-card__hospital">${escapeHtml(visit.hospital_name) || "Hospital not recorded"}</div>
 

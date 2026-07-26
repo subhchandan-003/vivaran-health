@@ -110,6 +110,92 @@ body::before {
   flex-direction: column;
 }
 
+/* ---------- App shell (sidebar + main) ---------- */
+/* The sidebar exists in the DOM at every width — visibility is pure CSS, no
+   resize listeners needed. Below --bp-desktop it's simply display:none and
+   the existing header icons (My shared links / Log out) carry navigation,
+   exactly as before this feature existed. */
+
+.app-shell {
+  display: flex;
+  align-items: stretch;
+  min-height: 100vh;
+}
+
+.app-sidebar {
+  display: none;
+  flex-direction: column;
+  width: 248px;
+  flex-shrink: 0;
+  padding: 24px 16px;
+  border-right: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.6);
+  backdrop-filter: blur(16px) saturate(160%);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  position: sticky;
+  top: 0;
+  height: 100vh;
+}
+
+.app-sidebar__brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 700;
+  font-family: "Lexend", sans-serif;
+  color: var(--ink-900);
+  text-decoration: none;
+  padding: 0 10px;
+  margin-bottom: 28px;
+}
+
+.app-sidebar__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+}
+
+.app-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  color: var(--ink-700);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.92rem;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+}
+.app-nav-link:hover { background: var(--paper-100); color: var(--ink-900); }
+.app-nav-link.active {
+  background: linear-gradient(135deg, var(--teal-100), var(--teal-50));
+  color: var(--teal-700);
+  box-shadow: 0 1px 3px rgba(47, 158, 143, 0.15) inset;
+}
+.app-nav-link .icon { flex-shrink: 0; font-size: 1.15rem; }
+
+.app-sidebar__logout { margin-top: 12px; color: var(--ink-500); }
+.app-sidebar__logout:hover { background: var(--danger-100); color: var(--danger-500); }
+
+.app-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 900px) {
+  .app-sidebar { display: flex; }
+  .app-header__actions { display: none; }
+}
+
 h1, h2, h3, .app-header__brand, .auth-brand, .visit-card__hospital, .page-title {
   font-family: "Lexend", "Inter", sans-serif;
   letter-spacing: -0.01em;
@@ -126,6 +212,31 @@ a { color: var(--teal-600); }
   margin: 0 auto;
   padding: 0 20px;
 }
+
+/* Wider container for dashboard-style pages (timeline, analytics) — narrow
+   content (forms, auth, a single record) stays at the readable 560px above;
+   only pages designed to lay content out in a grid opt into this. */
+.container--wide {
+  max-width: 560px;
+}
+@media (min-width: 700px) {
+  .container--wide { max-width: 900px; }
+}
+@media (min-width: 1100px) {
+  .container--wide { max-width: 1180px; padding: 0 32px; }
+}
+
+/* Responsive card grid — one column on mobile, filling columns of ~300px
+   beyond that. Used by the timeline and analytics visit lists. */
+.card-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+@media (min-width: 700px) {
+  .card-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+}
+.card-grid > .card { margin-top: 0; }
 
 /* ---------- Header ---------- */
 
@@ -779,6 +890,106 @@ a { color: var(--teal-600); }
 .modal-box h3 { margin-top: 0; font-family: "Lexend", sans-serif; }
 .modal-actions { display: flex; gap: 10px; margin-top: 22px; }
 .modal-actions .btn { flex: 1; }
+
+/* ---------- Analytics ---------- */
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 8px;
+}
+@media (min-width: 700px) {
+  .stat-grid { grid-template-columns: repeat(4, 1fr); }
+}
+
+.stat-tile {
+  background: var(--paper-0);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px;
+  box-shadow: var(--shadow-sm);
+  animation: rise 0.4s var(--ease) both;
+}
+
+.stat-tile__icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(150deg, var(--teal-50), var(--teal-100));
+  color: var(--teal-600);
+  font-size: 1.1rem;
+  margin-bottom: 10px;
+}
+
+.stat-tile__value {
+  font-family: "Lexend", sans-serif;
+  font-size: 1.7rem;
+  font-weight: 700;
+  color: var(--ink-900);
+  line-height: 1.1;
+}
+
+.stat-tile__label {
+  color: var(--ink-500);
+  font-size: 0.82rem;
+  margin-top: 2px;
+}
+
+.analytics-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 14px;
+}
+@media (min-width: 900px) {
+  .analytics-grid { grid-template-columns: 1fr 1fr; }
+}
+
+.chart-title {
+  font-size: 0.95rem;
+  font-family: "Lexend", sans-serif;
+  margin: 0 0 14px;
+  color: var(--ink-900);
+}
+
+.chart-container {
+  position: relative;
+  overflow-x: auto;
+}
+
+.chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  min-width: 320px;
+}
+.chart-svg--h { min-width: 280px; }
+
+.chart-bar {
+  cursor: pointer;
+  transition: opacity 0.15s var(--ease);
+}
+.chart-bar:hover { opacity: 0.8; }
+
+.chart-tooltip {
+  position: absolute;
+  pointer-events: none;
+  background: var(--ink-900);
+  color: white;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 5px 9px;
+  border-radius: 8px;
+  opacity: 0;
+  transform: translateY(4px);
+  transition: opacity 0.15s var(--ease), transform 0.15s var(--ease);
+  white-space: nowrap;
+  z-index: 5;
+}
+.chart-tooltip.is-visible { opacity: 1; transform: translateY(0); }
 
 /* ---------- Doctor view ---------- */
 

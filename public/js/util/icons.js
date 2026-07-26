@@ -17,6 +17,12 @@ export const icons = {
   lock: svg('<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V7a4 4 0 018 0v4"/>', { strokeWidth: 1.5 }),
   help: svg('<circle cx="12" cy="12" r="9"/><path d="M9.5 9a2.5 2.5 0 015 0c0 1.5-1.5 2-2.5 3"/><path d="M12 17h.01"/>', { strokeWidth: 1.5 }),
   shieldCheck: svg('<path d="M12 3l7 3v6c0 4.5-3 7.5-7 9-4-1.5-7-4.5-7-9V6l7-3z"/><path d="M9 12l2 2 4-4"/>', { strokeWidth: 1.6 }),
+  barChart: svg('<path d="M4 20V10"/><path d="M11 20V4"/><path d="M18 20v-7"/>', { strokeWidth: 2 }),
+  pill: svg('<rect x="3" y="9.5" width="18" height="5" rx="2.5" transform="rotate(-45 12 12)"/><path d="M9 9l6 6"/>', { strokeWidth: 1.6 }),
+  stethoscope: svg('<path d="M6 4v5a4 4 0 008 0V4"/><path d="M10 13v2a5 5 0 0010 0v-2.5"/><circle cx="20" cy="10" r="1.6"/>', { strokeWidth: 1.6 }),
+  plus: svg('<path d="M12 5v14M5 12h14"/>'),
+  building: svg('<rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 21v-4h6v4"/><path d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01"/>', { strokeWidth: 1.6 }),
+  calendar: svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/>', { strokeWidth: 1.6 }),
 };
 
 export function iconSpan(name, extraClass = "") {
