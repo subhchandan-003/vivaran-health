@@ -307,6 +307,18 @@ a { color: var(--teal-600); }
 .icon-btn:hover { background: var(--teal-50); color: var(--teal-700); }
 .icon-btn:active { transform: scale(0.92); }
 
+/* The sidebar already shows the logo + brand — repeating it in the top
+   header produced a jarring "double logo" row at desktop widths. Hide the
+   brand there, and collapse the header bar entirely except on pages that
+   need the back button (visit detail, upload review, share, my shared
+   links). Placed after the base .app-header rules so it wins the cascade
+   despite equal selector specificity. */
+@media (min-width: 900px) {
+  .app-header__brand { display: none; }
+  .app-header { display: none; }
+  .app-header:has(#nav-back) { display: block; }
+}
+
 /* ---------- Page shell ---------- */
 
 .page {
