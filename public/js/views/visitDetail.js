@@ -69,6 +69,7 @@ export async function render(app, visitId) {
     ` : ""}
 
     <div class="action-row">
+      <button class="btn btn-secondary" id="edit-btn">Edit</button>
       <button class="btn btn-secondary" id="share-btn">Share</button>
       <button class="btn btn-danger" id="delete-btn">Delete</button>
     </div>
@@ -95,6 +96,8 @@ export async function render(app, visitId) {
       }
     });
   }
+
+  document.getElementById("edit-btn").addEventListener("click", () => navigate(`/visit/${visit.id}/edit`));
 
   document.getElementById("share-btn").addEventListener("click", () => navigate(`/share/${visit.id}`));
 

@@ -66,6 +66,11 @@ route("/visit/:id", requireAuth(async (app, params) => {
   await mod.render(app, params.id);
 }));
 
+route("/visit/:id/edit", requireAuth(async (app, params) => {
+  const mod = await import("./views/editVisit.js");
+  await mod.render(app, params.id);
+}));
+
 route("/share/:visitId", requireAuth(async (app, params) => {
   const mod = await import("./views/share.js");
   await mod.render(app, params.visitId);
