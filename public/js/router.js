@@ -38,15 +38,36 @@ function matchRoute(hash) {
   return null;
 }
 
-export async function renderCurrentRoute() {
-  const app = document.getElementById("app");
-  const hash = window.location.hash || "#/";
-  const match = matchRoute(hash);
+async function doRender(app, match) {
   if (!match) {
     app.innerHTML = notFoundHandler();
     return;
   }
   await match.render(app, match.params, match.query);
+}
+
+export async function renderCurrentRoute() {
+  const app = document.getElementById("app");
+  const hash = window.location.hash || "#/";
+  const match = matchRoute(hash);
+
+  const reducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  // View Transitions cross-fade old page -> new page, but the browser holds
+  // a frozen screenshot of the old page until the update callback's promise
+  // resolves — fine for this app's near-instant local-mode fetches, but a
+  // real backend over a slow connection could leave that screenshot frozen
+  // for seconds with no spinner visible. skipTransition() after a short
+  // grace period drops the freeze (the render keeps running underneath) so
+  // slow renders fall back to the plain, spinner-visible path instead.
+  if (!reducedMotion && document.startViewTransition) {
+    const transition = document.startViewTransition(() => doRender(app, match));
+    const bail = setTimeout(() => transition.skipTransition(), 250);
+    transition.finished.finally(() => clearTimeout(bail));
+    await transition.finished;
+  } else {
+    await doRender(app, match);
+  }
 }
 
 export function startRouter() {

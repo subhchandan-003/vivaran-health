@@ -4,6 +4,8 @@ import { escapeHtml, formatDate } from "../util/dom.js";
 import { navigate } from "../router.js";
 import { icons } from "../util/icons.js";
 import { renderBarChart, renderHBarChart, wireChartTooltip } from "../util/charts.js";
+import { countUp } from "../util/countUp.js";
+import { observeReveal } from "../util/reveal.js";
 
 const MONTH_LABEL = new Intl.DateTimeFormat(undefined, { month: "short", year: "2-digit" });
 
@@ -108,22 +110,22 @@ export async function render(app) {
     <div class="stat-grid">
       <div class="stat-tile">
         <span class="icon stat-tile__icon">${icons.document}</span>
-        <div class="stat-tile__value">${visits.length}</div>
+        <div class="stat-tile__value" id="stat-visits">0</div>
         <div class="stat-tile__label">Visits recorded</div>
       </div>
       <div class="stat-tile">
         <span class="icon stat-tile__icon">${icons.stethoscope}</span>
-        <div class="stat-tile__value">${doctors.length}</div>
+        <div class="stat-tile__value" id="stat-doctors">0</div>
         <div class="stat-tile__label">Doctors seen</div>
       </div>
       <div class="stat-tile">
         <span class="icon stat-tile__icon">${icons.building}</span>
-        <div class="stat-tile__value">${hospitals.length}</div>
+        <div class="stat-tile__value" id="stat-hospitals">0</div>
         <div class="stat-tile__label">Hospitals / clinics</div>
       </div>
       <div class="stat-tile">
         <span class="icon stat-tile__icon">${icons.pill}</span>
-        <div class="stat-tile__value">${medications.length}</div>
+        <div class="stat-tile__value" id="stat-meds">0</div>
         <div class="stat-tile__label">Medications recorded</div>
       </div>
     </div>
@@ -131,14 +133,14 @@ export async function render(app) {
     ${mostRecent ? `<p class="page-subtitle" style="margin-top:20px;">Most recent visit: <strong style="color:var(--ink-900);">${formatDate(mostRecent.visit_date)}</strong> — ${escapeHtml(mostRecent.hospital_name) || "hospital not recorded"}</p>` : ""}
 
     <div class="analytics-grid">
-      <div class="card">
+      <div class="card" data-reveal style="--i:0;">
         <h3 class="chart-title">Visits over time</h3>
         ${byMonth.labels.length > 0
           ? `<div class="chart-container" id="chart-visits">${renderBarChart({ labels: byMonth.labels, values: byMonth.values })}</div>`
           : `<p style="color:var(--ink-500);">No dated visits yet.</p>`}
       </div>
 
-      <div class="card">
+      <div class="card" data-reveal style="--i:1;">
         <h3 class="chart-title">Most-recorded medications</h3>
         ${topMeds.length > 0
           ? `<div class="chart-container" id="chart-meds">${renderHBarChart({ labels: topMeds.map((m) => m.name), values: topMeds.map((m) => m.count) })}</div>`
@@ -147,7 +149,7 @@ export async function render(app) {
     </div>
 
     <div class="analytics-grid" style="margin-top:14px;">
-      <div class="card">
+      <div class="card" data-reveal style="--i:2;">
         <h3 class="chart-title">Doctors you've seen</h3>
         ${
           topDoctors.length > 0
@@ -165,7 +167,7 @@ export async function render(app) {
         }
       </div>
 
-      <div class="card">
+      <div class="card" data-reveal style="--i:3;">
         <h3 class="chart-title">Hospitals & clinics</h3>
         ${
           topHospitals.length > 0
@@ -193,4 +195,11 @@ export async function render(app) {
   if (visitsChart) wireChartTooltip(visitsChart);
   const medsChart = document.getElementById("chart-meds");
   if (medsChart) wireChartTooltip(medsChart);
+
+  countUp(document.getElementById("stat-visits"), visits.length);
+  countUp(document.getElementById("stat-doctors"), doctors.length);
+  countUp(document.getElementById("stat-hospitals"), hospitals.length);
+  countUp(document.getElementById("stat-meds"), medications.length);
+
+  observeReveal(content);
 }

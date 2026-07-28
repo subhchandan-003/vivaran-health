@@ -72,9 +72,31 @@
   --shadow-lg: 0 24px 60px -20px rgba(28, 109, 100, 0.32);
   --shadow-xl: 0 36px 80px -24px rgba(28, 109, 100, 0.4);
   --ease: cubic-bezier(0.22, 1, 0.36, 1);
+  /* Springier easing for hover/press feedback — reserved for short, small-
+     amplitude motion (button/card lift) where a little overshoot reads as
+     tactile rather than distracting. Page-level motion keeps --ease. */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 * { box-sizing: border-box; }
+
+/* ---------- Page transitions (View Transitions API) ---------- */
+/* router.js opts into this per-navigation via document.startViewTransition,
+   skipping it entirely under prefers-reduced-motion. Named view-transition
+   pseudo-elements only take effect while a transition is active, so this is
+   inert cost-free CSS otherwise. */
+::view-transition-old(root) {
+  animation: page-out 0.22s var(--ease) both;
+}
+::view-transition-new(root) {
+  animation: page-in 0.32s var(--ease) both;
+}
+@keyframes page-out {
+  to { opacity: 0; transform: translateY(-6px) scale(0.99); }
+}
+@keyframes page-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.99); }
+}
 
 html, body {
   margin: 0;
@@ -157,6 +179,8 @@ body::before {
 }
 
 .app-nav-link {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -171,15 +195,30 @@ body::before {
   cursor: pointer;
   width: 100%;
   text-align: left;
-  transition: background 0.2s var(--ease), color 0.2s var(--ease);
+  transition: color 0.2s var(--ease);
 }
-.app-nav-link:hover { background: var(--paper-100); color: var(--ink-900); }
+/* Wipe-in hover fill instead of an instant background swap — reads as more
+   alive without being a background-color transition (which looks muddy on
+   the gradient .active state, so that state is excluded and kept as-is). */
+.app-nav-link::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: var(--paper-100);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.25s var(--ease-spring);
+  z-index: -1;
+}
+.app-nav-link:not(.active):hover::before { transform: scaleX(1); }
+.app-nav-link:not(.active):hover { color: var(--ink-900); }
 .app-nav-link.active {
   background: linear-gradient(135deg, var(--teal-100), var(--teal-50));
   color: var(--teal-700);
   box-shadow: 0 1px 3px rgba(47, 158, 143, 0.15) inset;
 }
-.app-nav-link .icon { flex-shrink: 0; font-size: 1.15rem; }
+.app-nav-link .icon { flex-shrink: 0; font-size: 1.15rem; transition: transform 0.2s var(--ease-spring); }
+.app-nav-link:hover .icon { transform: scale(1.15); }
 
 .app-sidebar__logout { margin-top: 12px; color: var(--ink-500); }
 .app-sidebar__logout:hover { background: var(--danger-100); color: var(--danger-500); }
@@ -340,6 +379,21 @@ a { color: var(--teal-600); }
   font-size: 0.95rem;
 }
 
+/* Scroll-reveal — util/reveal.js toggles .is-visible via IntersectionObserver
+   the first time an element enters the viewport (one-shot, then unobserved).
+   transition-delay (not animation-delay) so JS controls *when* the reveal
+   starts per element, while --i still staggers siblings. */
+[data-reveal] {
+  opacity: 0;
+  transform: translateY(18px);
+  transition: opacity 0.5s var(--ease), transform 0.5s var(--ease);
+  transition-delay: calc(var(--i, 0) * 60ms);
+}
+[data-reveal].is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
 /* ---------- Buttons (claymorphism: soft dual shadow, tactile press) ---------- */
 
 .btn {
@@ -363,6 +417,8 @@ a { color: var(--teal-600); }
 .btn:focus-visible { outline: 2px solid var(--teal-500); outline-offset: 2px; }
 
 .btn-primary {
+  position: relative;
+  overflow: hidden;
   background: linear-gradient(160deg, var(--teal-400), var(--teal-600));
   color: white;
   box-shadow:
@@ -378,6 +434,17 @@ a { color: var(--teal-600); }
     0 16px 30px -10px rgba(34, 133, 122, 0.65);
   transform: translateY(-1px);
 }
+/* Light sweep on hover — a single quick pass, not a looping shimmer, so it
+   reads as a one-time "ready" cue rather than a distraction. */
+.btn-primary::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 40%, rgba(255, 255, 255, 0.35) 50%, transparent 60%);
+  transform: translateX(-120%);
+  transition: transform 0.6s var(--ease);
+}
+.btn-primary:hover:not(:disabled)::after { transform: translateX(120%); }
 
 .btn-secondary {
   background: var(--paper-0);
@@ -415,7 +482,7 @@ a { color: var(--teal-600); }
   border-radius: var(--radius-lg);
   padding: 20px;
   box-shadow: var(--shadow-sm);
-  transition: box-shadow 0.25s var(--ease), transform 0.25s var(--ease), border-color 0.25s var(--ease);
+  transition: box-shadow 0.25s var(--ease-spring), transform 0.25s var(--ease-spring), border-color 0.25s var(--ease);
 }
 
 .card + .card { margin-top: 14px; }
@@ -429,7 +496,7 @@ a { color: var(--teal-600); }
 }
 .visit-card:hover {
   box-shadow: 0 1px 2px rgba(31, 41, 55, 0.05), 0 18px 34px -16px rgba(47, 158, 143, 0.35);
-  transform: translateY(-2px);
+  transform: translateY(-3px) scale(1.012);
   border-color: var(--teal-200);
 }
 
@@ -741,7 +808,8 @@ a { color: var(--teal-600); }
   transform: translateY(-1px);
 }
 
-.upload-dropzone .icon { color: var(--teal-600); font-size: 2rem; margin-bottom: 6px; }
+.upload-dropzone .icon { color: var(--teal-600); font-size: 2rem; margin-bottom: 6px; transition: transform 0.25s var(--ease-spring); }
+.upload-dropzone:hover .icon { transform: translateY(-3px) scale(1.08); }
 
 .image-preview {
   width: 100%;
@@ -764,6 +832,26 @@ a { color: var(--teal-600); }
 
 @keyframes spin { to { transform: rotate(360deg); } }
 @keyframes rise { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+
+/* Skeleton shimmer — a calmer stand-in for a spinner on first load of
+   content-shaped areas (stat tiles, chart cards). Shape communicates what's
+   coming, which reads as faster than a generic spinner even at equal load time. */
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: var(--paper-100);
+  border-radius: var(--radius-md);
+  color: transparent !important;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.7), transparent);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer { to { transform: translateX(100%); } }
 
 .loading-row {
   display: flex;
@@ -865,6 +953,11 @@ a { color: var(--teal-600); }
   position: relative;
   animation: rise 0.4s var(--ease) both;
   animation-delay: calc(var(--i, 0) * 45ms);
+}
+.share-link-card:hover {
+  box-shadow: 0 1px 2px rgba(31, 41, 55, 0.05), 0 18px 34px -16px rgba(47, 158, 143, 0.3);
+  transform: translateY(-3px);
+  border-color: var(--teal-200);
 }
 .share-link-card .badge { margin-left: 8px; }
 
@@ -983,8 +1076,17 @@ a { color: var(--teal-600); }
 .chart-bar {
   cursor: pointer;
   transition: opacity 0.15s var(--ease);
+  transform-box: fill-box;
 }
 .chart-bar:hover { opacity: 0.8; }
+
+/* Bar entrance — charts.js sets transform-origin + a per-bar animation-delay
+   inline (staggered by index), so bars grow in left-to-right / bottom-up
+   instead of appearing all at once. */
+.chart-bar--grow-v { animation: bar-grow-v 0.5s var(--ease) both; transform-origin: center bottom; }
+.chart-bar--grow-h { animation: bar-grow-h 0.5s var(--ease) both; transform-origin: left center; }
+@keyframes bar-grow-v { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+@keyframes bar-grow-h { from { transform: scaleX(0); } to { transform: scaleX(1); } }
 
 .chart-tooltip {
   position: absolute;

@@ -44,7 +44,7 @@ export function renderBarChart({ labels, values, height = 220 }) {
     const x = padLeft + i * (plotW / labels.length) + ((plotW / labels.length) - barW) / 2;
     const y = padTop + plotH - barH;
     return `
-      <rect class="chart-bar" x="${x}" y="${y}" width="${barW}" height="${Math.max(barH, 1)}" rx="4"
+      <rect class="chart-bar chart-bar--grow-v" style="animation-delay:${i * 45}ms;" x="${x}" y="${y}" width="${barW}" height="${Math.max(barH, 1)}" rx="4"
         fill="${TEAL}" data-label="${escapeHtml(label)}" data-value="${v}" />
       <text x="${x + barW / 2}" y="${height - 8}" text-anchor="middle" font-size="10" fill="${AXIS_TEXT}">${escapeHtml(label)}</text>
     `;
@@ -73,7 +73,7 @@ export function renderHBarChart({ labels, values, rowHeight = 34 }) {
     const y = i * rowHeight + 6;
     return `
       <text x="${labelW - 10}" y="${y + rowHeight / 2 + 4}" text-anchor="end" font-size="12" fill="var(--ink-700, #3f4a58)" font-weight="600">${escapeHtml(label)}</text>
-      <rect class="chart-bar" x="${labelW}" y="${y}" width="${Math.max(barW, 2)}" height="${rowHeight - 12}" rx="4"
+      <rect class="chart-bar chart-bar--grow-h" style="animation-delay:${i * 45}ms;" x="${labelW}" y="${y}" width="${Math.max(barW, 2)}" height="${rowHeight - 12}" rx="4"
         fill="${TEAL}" data-label="${escapeHtml(label)}" data-value="${v}" />
       <text x="${labelW + barW + 8}" y="${y + rowHeight / 2 - 6 + 4}" font-size="11" fill="${AXIS_TEXT}">${v}</text>
     `;
