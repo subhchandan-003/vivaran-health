@@ -275,7 +275,17 @@ a { color: var(--teal-600); }
 @media (min-width: 700px) {
   .card-grid { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
 }
-.card-grid > .card { margin-top: 0; }
+/* Higher specificity than `.card + .card` (below) so this reliably wins
+   regardless of source order — grid items must never pick up the stacked-
+   card spacing rule, or non-first cards in a row sit lower than the first,
+   breaking the row's top alignment (the grid's own `gap` already spaces
+   rows/columns correctly). Covers every grid that lays out `.card`
+   children directly — `.card-grid` (timeline) and `.analytics-grid`
+   (dashboard) alike. */
+.card-grid > .card + .card,
+.analytics-grid > .card + .card {
+  margin-top: 0;
+}
 
 /* ---------- Header ---------- */
 
