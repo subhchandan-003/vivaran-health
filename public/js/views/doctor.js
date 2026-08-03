@@ -2,6 +2,7 @@ import { supabase } from "../dataClient.js";
 import { escapeHtml, formatDate } from "../util/dom.js";
 import { navigate } from "../router.js";
 import { icons } from "../util/icons.js";
+import { recordTypeMeta } from "../util/recordTypes.js";
 
 function shellHtml(innerHtml, wide = false) {
   return `
@@ -94,10 +95,14 @@ function renderVisit(visit, i = 0) {
     : `<p style="color:var(--ink-500);">No medicines recorded.</p>`;
 
   const imageContainerId = `img-${visit.id}`;
+  const typeMeta = recordTypeMeta(visit.record_type);
 
   return `
     <div class="card" style="animation:rise 0.4s var(--ease) both;animation-delay:calc(${i} * 60ms);">
-      <div class="visit-card__date">${formatDate(visit.visit_date)}</div>
+      <div class="visit-card__row">
+        <span class="visit-card__date">${formatDate(visit.visit_date)}</span>
+        ${typeMeta ? `<span class="record-type-badge"><span class="icon">${icons[typeMeta.icon]}</span>${typeMeta.label}</span>` : ""}
+      </div>
       <div class="visit-card__hospital">${escapeHtml(visit.hospital_name) || "Hospital not recorded"}</div>
 
       <div class="detail-row">

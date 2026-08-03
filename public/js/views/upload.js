@@ -3,6 +3,7 @@ import { mountPage } from "../util/layout.js";
 import { escapeHtml } from "../util/dom.js";
 import { navigate } from "../router.js";
 import { icons } from "../util/icons.js";
+import { RECORD_TYPES } from "../util/recordTypes.js";
 
 function fileToBase64(file) {
   return new Promise((resolve, reject) => {
@@ -85,6 +86,7 @@ export async function render(app) {
         doctor_name: null,
         diagnosis_summary: null,
         notes: null,
+        record_type: null,
       };
       confidenceFlags = [];
       medicines = [];
@@ -133,6 +135,13 @@ export async function render(app) {
       <img class="image-preview" src="${previewUrl}" alt="Selected document" />
 
       <form id="review-form">
+        <div class="field">
+          <label for="record_type">Record type</label>
+          <select id="record_type">
+            <option value="">Not specified</option>
+            ${RECORD_TYPES.map((t) => `<option value="${t.value}" ${extracted.record_type === t.value ? "selected" : ""}>${t.label}</option>`).join("")}
+          </select>
+        </div>
         <div class="${fieldClass("visit_date")}">
           <label for="visit_date">Visit date</label>
           <input type="date" id="visit_date" value="${escapeHtml(extracted.visit_date || "")}" />
@@ -231,6 +240,7 @@ export async function render(app) {
 
       const payload = {
         user_id: userId,
+        record_type: document.getElementById("record_type").value || null,
         visit_date: document.getElementById("visit_date").value || null,
         hospital_name: document.getElementById("hospital_name").value.trim() || null,
         doctor_name: document.getElementById("doctor_name").value.trim() || null,

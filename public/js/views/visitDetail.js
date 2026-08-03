@@ -3,14 +3,17 @@ import { mountPage } from "../util/layout.js";
 import { escapeHtml, formatDate } from "../util/dom.js";
 import { navigate } from "../router.js";
 import { icons } from "../util/icons.js";
+import { recordTypeMeta } from "../util/recordTypes.js";
 
 export async function render(app, visitId) {
   mountPage(app, { title: "Visit", showBack: true }, `<div class="loading-row"><span class="spinner"></span> Loading...</div>`);
 
+  const { data: userData } = await supabase.auth.getUser();
   const { data: visit, error } = await supabase
     .from("visits")
     .select("*")
     .eq("id", visitId)
+    .eq("user_id", userData.user.id)
     .maybeSingle();
 
   const content = document.getElementById("page-content");
@@ -36,9 +39,14 @@ export async function render(app, visitId) {
         .join("")
     : `<p style="color:var(--ink-500);">No medicines recorded.</p>`;
 
+  const typeMeta = recordTypeMeta(visit.record_type);
+
   content.innerHTML = `
     <h1 class="page-title">${escapeHtml(visit.hospital_name) || "Visit record"}</h1>
-    <p class="page-subtitle">${formatDate(visit.visit_date)}</p>
+    <p class="page-subtitle" style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+      <span>${formatDate(visit.visit_date)}</span>
+      ${typeMeta ? `<span class="record-type-badge"><span class="icon">${icons[typeMeta.icon]}</span>${typeMeta.label}</span>` : ""}
+    </p>
 
     ${flags.length ? `<div class="alert alert-warn">Some fields on this record were low-confidence reads: ${escapeHtml(flags.join(", "))}.</div>` : ""}
 

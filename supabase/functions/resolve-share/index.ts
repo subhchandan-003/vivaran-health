@@ -58,7 +58,7 @@ Deno.serve(async (req: Request) => {
     let query = supabase
       .from("visits")
       .select(
-        "id, visit_date, hospital_name, doctor_name, diagnosis_summary, medicines, notes, raw_file_path, confidence_flags",
+        "id, visit_date, hospital_name, doctor_name, diagnosis_summary, medicines, notes, raw_file_path, confidence_flags, record_type",
       )
       .eq("user_id", link.user_id)
       .order("visit_date", { ascending: false });

@@ -2,6 +2,7 @@ import { supabase } from "./dataClient.js";
 import { route, setNotFound, startRouter, navigate } from "./router.js";
 import { render as renderAuth, getPendingConsent } from "./views/auth.js";
 import { icons } from "./util/icons.js";
+import { initTheme } from "./util/theme.js";
 
 let currentSession = null;
 
@@ -101,6 +102,8 @@ setNotFound(() => `
 `);
 
 async function boot() {
+  initTheme();
+
   const { data } = await supabase.auth.getSession();
   currentSession = data.session;
 

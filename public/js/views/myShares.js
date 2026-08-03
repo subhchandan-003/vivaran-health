@@ -24,21 +24,22 @@ function scopeLabel(link) {
 // Fetches the actual visits behind a share link, for the "view contents"
 // preview — lets the patient audit exactly what a link exposes before
 // deciding whether to revoke it.
-async function loadShareContents(link) {
+async function loadShareContents(link, userId) {
   const cols = "id, visit_date, hospital_name, diagnosis_summary";
   if (link.scope === "single_visit") {
-    const { data } = await supabase.from("visits").select(cols).eq("id", link.visit_id);
+    const { data } = await supabase.from("visits").select(cols).eq("id", link.visit_id).eq("user_id", userId);
     return data || [];
   }
   if (link.scope === "selected_visits") {
     const ids = Array.isArray(link.visit_ids) ? link.visit_ids : [];
     if (ids.length === 0) return [];
-    const { data } = await supabase.from("visits").select(cols).in("id", ids);
+    const { data } = await supabase.from("visits").select(cols).in("id", ids).eq("user_id", userId);
     return data || [];
   }
   const { data } = await supabase
     .from("visits")
     .select(cols)
+    .eq("user_id", userId)
     .order("visit_date", { ascending: false, nullsFirst: false });
   return data || [];
 }
@@ -47,9 +48,12 @@ export async function render(app) {
   mountPage(app, { title: "My shared links", showBack: true, wide: true }, `<div class="loading-row"><span class="spinner"></span> Loading...</div>`);
   const content = document.getElementById("page-content");
 
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user.id;
   const { data: links, error } = await supabase
     .from("share_links")
     .select("id, token, scope, created_at, expires_at, revoked, visit_id, visit_ids, visits(hospital_name, visit_date)")
+    .eq("user_id", userId)
     .order("created_at", { ascending: false });
 
   if (error) {
@@ -135,7 +139,7 @@ export async function render(app) {
         if (willOpen && !loaded) {
           panel.innerHTML = `<div class="loading-row" style="padding:16px 0;"><span class="spinner"></span></div>`;
           const link = links.find((l) => l.id === linkId);
-          const visits = await loadShareContents(link);
+          const visits = await loadShareContents(link, userId);
           panel.innerHTML = visits.length
             ? visits
                 .map(

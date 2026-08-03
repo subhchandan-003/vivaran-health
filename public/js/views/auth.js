@@ -1,6 +1,8 @@
 import { supabase, isLocalMode } from "../dataClient.js";
 import { navigate } from "../router.js";
 import { escapeHtml } from "../util/dom.js";
+import { icons } from "../util/icons.js";
+import { seedDemoAccount, DEMO_EMAIL, DEMO_PASSWORD } from "../local/demoSeed.js";
 
 const CONSENT_TEXT =
   "I agree to store my health documents securely. Vivaran Health will never share my data without my explicit action.";
@@ -34,8 +36,12 @@ export async function render(app) {
           </div>
 
           ${isLocalMode ? `
+            <button type="button" class="demo-cta" id="explore-demo-btn">
+              <div class="demo-cta__title">${icons.barChart} Explore with demo data</div>
+              <div class="demo-cta__desc">See the full app populated with a year of visits across multiple cities, hospitals, and record types.</div>
+            </button>
             <div class="alert alert-info" style="display:flex;flex-direction:column;gap:8px;">
-              <div><strong>Local demo mode</strong> — skip typing, use the test account:</div>
+              <div><strong>Or start from a blank slate</strong> — use the empty test account:</div>
               <div style="font-size:0.78rem;color:var(--ink-500);">${escapeHtml(TEST_EMAIL)} &nbsp;/&nbsp; ${escapeHtml(TEST_PASSWORD)}</div>
               <button type="button" class="btn btn-secondary btn-block" id="quick-login-btn">Quick log in</button>
             </div>
@@ -86,6 +92,29 @@ export async function render(app) {
 
     const quickLoginBtn = app.querySelector("#quick-login-btn");
     if (quickLoginBtn) quickLoginBtn.addEventListener("click", quickLogIn);
+
+    const exploreDemoBtn = app.querySelector("#explore-demo-btn");
+    if (exploreDemoBtn) exploreDemoBtn.addEventListener("click", exploreDemo);
+  }
+
+  // Seeds (or re-seeds, wiping stale duplicates) a fixed, richly-populated
+  // demo account, then logs into it — separate from the blank quick-login
+  // account so a genuine empty-state/signup flow stays demonstrable too.
+  async function exploreDemo() {
+    const btn = document.getElementById("explore-demo-btn");
+    btn.disabled = true;
+    btn.querySelector(".demo-cta__title").textContent = "Loading demo...";
+    try {
+      seedDemoAccount();
+      const { error: loginError } = await supabase.auth.signInWithPassword({ email: DEMO_EMAIL, password: DEMO_PASSWORD });
+      if (loginError) {
+        const { error: signupError } = await supabase.auth.signUp({ email: DEMO_EMAIL, password: DEMO_PASSWORD });
+        if (signupError) throw signupError;
+      }
+      navigate("/timeline");
+    } catch (err) {
+      paint(err.message || "Could not load the demo account.");
+    }
   }
 
   // One button that just works whether or not the test account exists yet:

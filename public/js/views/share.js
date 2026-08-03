@@ -19,11 +19,14 @@ export async function render(app, visitId, visitIds) {
 
   const multiMode = Array.isArray(visitIds) && visitIds.length > 0;
 
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user.id;
+
   let visitLabel = null;
   let selectedVisits = [];
 
   if (multiMode) {
-    const { data: visits } = await supabase.from("visits").select("id, hospital_name, visit_date").in("id", visitIds);
+    const { data: visits } = await supabase.from("visits").select("id, hospital_name, visit_date").in("id", visitIds).eq("user_id", userId);
     selectedVisits = visits || [];
     if (selectedVisits.length === 0) {
       content.innerHTML = `<div class="alert alert-error">These visits could not be found.</div>`;
@@ -34,6 +37,7 @@ export async function render(app, visitId, visitIds) {
       .from("visits")
       .select("hospital_name, visit_date")
       .eq("id", visitId)
+      .eq("user_id", userId)
       .maybeSingle();
     if (!visit) {
       content.innerHTML = `<div class="alert alert-error">This visit could not be found.</div>`;
@@ -103,7 +107,6 @@ export async function render(app, visitId, visitIds) {
     btn.textContent = "Generating...";
 
     try {
-      const { data: userData } = await supabase.auth.getUser();
       const token = randomToken();
       const expiresAt = new Date(Date.now() + 48 * 60 * 60 * 1000).toISOString();
 
@@ -112,7 +115,7 @@ export async function render(app, visitId, visitIds) {
         scope,
         visit_id: scope === "single_visit" ? visitId : null,
         visit_ids: scope === "selected_visits" ? visitIds : null,
-        user_id: userData.user.id,
+        user_id: userId,
         expires_at: expiresAt,
       });
       if (error) throw error;

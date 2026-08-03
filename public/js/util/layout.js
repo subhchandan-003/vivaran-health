@@ -1,6 +1,7 @@
 import { supabase } from "../dataClient.js";
 import { navigate } from "../router.js";
 import { icons } from "./icons.js";
+import { resolveTheme, toggleTheme } from "./theme.js";
 
 // One persistent, working support contact — replace with a real inbox/WhatsApp
 // number before sharing this build outside the team.
@@ -17,16 +18,22 @@ function currentPath() {
   return (window.location.hash || "#/").replace(/^#/, "").split("?")[0] || "/";
 }
 
+function isNavItemActive(item, path) {
+  return path === item.path || (item.matchPrefix && path.startsWith(item.matchPrefix));
+}
+
+function themeToggleIcon() {
+  // Shows the icon for the mode a click switches *to*.
+  return resolveTheme() === "dark" ? icons.sun : icons.moon;
+}
+
 function renderSidebar() {
   const path = currentPath();
-  const links = NAV_ITEMS.map((item) => {
-    const active = path === item.path || (item.matchPrefix && path.startsWith(item.matchPrefix));
-    return `
-      <a href="#${item.path}" class="app-nav-link ${active ? "active" : ""}">
+  const links = NAV_ITEMS.map((item) => `
+      <a href="#${item.path}" class="app-nav-link ${isNavItemActive(item, path) ? "active" : ""}">
         <span class="icon">${icons[item.icon]}</span><span>${item.label}</span>
       </a>
-    `;
-  }).join("");
+    `).join("");
 
   return `
     <aside class="app-sidebar">
@@ -35,10 +42,28 @@ function renderSidebar() {
         <span>Vivaran Health</span>
       </a>
       <nav class="app-sidebar__nav">${links}</nav>
+      <button type="button" class="app-nav-link theme-toggle-inline" id="sidebar-theme-toggle">
+        <span class="icon">${themeToggleIcon()}</span><span>Theme</span>
+      </button>
       <button type="button" class="app-nav-link app-sidebar__logout" id="sidebar-logout">
         <span class="icon">${icons.power}</span><span>Log out</span>
       </button>
     </aside>
+  `;
+}
+
+function renderBottomNav() {
+  const path = currentPath();
+  const links = NAV_ITEMS.map((item) => `
+      <a href="#${item.path}" class="app-bottomnav__link ${isNavItemActive(item, path) ? "active" : ""}">
+        <span class="icon">${icons[item.icon]}</span><span>${item.label}</span>
+      </a>
+    `).join("");
+
+  return `
+    <nav class="app-bottomnav" aria-label="Primary">
+      <div class="app-bottomnav__row">${links}</div>
+    </nav>
   `;
 }
 
@@ -47,7 +72,8 @@ export function renderShell({ title = "Vivaran Health", showBack = false, showAc
     ? `<button class="icon-btn" id="nav-back" aria-label="Back">${icons.chevronLeft}</button>`
     : "";
   const accountBtn = showAccount
-    ? `<button class="icon-btn" id="nav-shares" aria-label="My shared links">${icons.link}</button>
+    ? `<button class="icon-btn theme-toggle" id="nav-theme-toggle" aria-label="Toggle dark mode">${themeToggleIcon()}</button>
+       <button class="icon-btn" id="nav-shares" aria-label="My shared links">${icons.link}</button>
        <button class="icon-btn" id="nav-logout" aria-label="Log out">${icons.power}</button>`
     : "";
 
@@ -72,6 +98,7 @@ export function renderShell({ title = "Vivaran Health", showBack = false, showAc
           <a class="support-link" href="${SUPPORT_MAILTO}">Need help? Contact support</a>
         </footer>
       </div>
+      ${showAccount ? renderBottomNav() : ""}
     </div>
   `;
 }
@@ -93,6 +120,25 @@ export function wireShellEvents(app) {
 
   const sidebarLogoutBtn = app.querySelector("#sidebar-logout");
   if (sidebarLogoutBtn) sidebarLogoutBtn.addEventListener("click", doLogout);
+
+  function refreshThemeIcons() {
+    const icon = themeToggleIcon();
+    const headerBtn = app.querySelector("#nav-theme-toggle");
+    if (headerBtn) headerBtn.innerHTML = icon;
+    const sidebarBtn = app.querySelector("#sidebar-theme-toggle .icon");
+    if (sidebarBtn) sidebarBtn.innerHTML = icon;
+  }
+
+  function onToggleTheme() {
+    toggleTheme();
+    refreshThemeIcons();
+  }
+
+  const themeToggleBtn = app.querySelector("#nav-theme-toggle");
+  if (themeToggleBtn) themeToggleBtn.addEventListener("click", onToggleTheme);
+
+  const sidebarThemeToggleBtn = app.querySelector("#sidebar-theme-toggle");
+  if (sidebarThemeToggleBtn) sidebarThemeToggleBtn.addEventListener("click", onToggleTheme);
 }
 
 export function mountPage(app, shellOptions, contentHtml) {

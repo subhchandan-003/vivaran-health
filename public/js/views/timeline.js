@@ -3,13 +3,16 @@ import { mountPage } from "../util/layout.js";
 import { escapeHtml, formatDate } from "../util/dom.js";
 import { navigate } from "../router.js";
 import { icons } from "../util/icons.js";
+import { recordTypeMeta } from "../util/recordTypes.js";
 
 export async function render(app) {
   mountPage(app, { title: "Timeline", wide: true }, `<div class="loading-row"><span class="spinner"></span> Loading your timeline...</div>`);
 
+  const { data: userData } = await supabase.auth.getUser();
   const { data: visits, error } = await supabase
     .from("visits")
-    .select("id, visit_date, hospital_name, doctor_name, diagnosis_summary")
+    .select("id, visit_date, hospital_name, doctor_name, diagnosis_summary, record_type")
+    .eq("user_id", userData.user.id)
     .order("visit_date", { ascending: false, nullsFirst: false })
     .order("created_at", { ascending: false });
 
@@ -41,9 +44,11 @@ export async function render(app) {
 
     const cards = visits
       .map((v, i) => {
+        const typeMeta = recordTypeMeta(v.record_type);
         const inner = `
           <div class="visit-card__row">
             <span class="visit-card__date">${formatDate(v.visit_date)}</span>
+            ${typeMeta ? `<span class="record-type-badge"><span class="icon">${icons[typeMeta.icon]}</span>${typeMeta.label}</span>` : ""}
           </div>
           <div class="visit-card__hospital">${escapeHtml(v.hospital_name) || "Hospital not recorded"}</div>
           <p class="visit-card__summary">${escapeHtml(v.diagnosis_summary) || "No summary recorded"}</p>

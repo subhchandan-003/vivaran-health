@@ -23,6 +23,8 @@ export const icons = {
   plus: svg('<path d="M12 5v14M5 12h14"/>'),
   building: svg('<rect x="4" y="3" width="16" height="18" rx="1.5"/><path d="M9 21v-4h6v4"/><path d="M8 7h.01M12 7h.01M16 7h.01M8 11h.01M12 11h.01M16 11h.01"/>', { strokeWidth: 1.6 }),
   calendar: svg('<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/>', { strokeWidth: 1.6 }),
+  sun: svg('<circle cx="12" cy="12" r="4.2"/><path d="M12 2.5v2.5M12 19v2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M2.5 12h2.5M19 12h2.5M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/>', { strokeWidth: 1.8 }),
+  moon: svg('<path d="M20 14.5A8.5 8.5 0 119.5 4a6.8 6.8 0 0010.5 10.5z"/>', { strokeWidth: 1.8 }),
 };
 
 export function iconSpan(name, extraClass = "") {

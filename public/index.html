@@ -3,7 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+  <meta name="theme-color" content="#6c56e0" />
   <title>Vivaran Health</title>
+  <!-- Applies the stored/system theme before the stylesheet loads, so there's
+       no flash of the wrong theme. Kept in sync with js/util/theme.js. -->
+  <script>
+    (function () {
+      try {
+        var stored = localStorage.getItem("vivaran_theme");
+        var theme = stored === "light" || stored === "dark"
+          ? stored
+          : (window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+        document.documentElement.dataset.theme = theme;
+      } catch (e) {
+        document.documentElement.dataset.theme = "light";
+      }
+    })();
+  </script>
   <!-- Type pairing: Lexend for headings (designed for reading proficiency —
        a deliberate accessibility choice for an app used by older/less
        tech-fluent patients), Inter for body copy. Both fall back cleanly to

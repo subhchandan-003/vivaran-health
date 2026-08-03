@@ -3,15 +3,19 @@ import { mountPage } from "../util/layout.js";
 import { escapeHtml } from "../util/dom.js";
 import { navigate } from "../router.js";
 import { icons } from "../util/icons.js";
+import { RECORD_TYPES } from "../util/recordTypes.js";
 
 export async function render(app, visitId) {
   mountPage(app, { title: "Edit visit", showBack: true }, `<div class="loading-row"><span class="spinner"></span> Loading...</div>`);
   const content = document.getElementById("page-content");
 
+  const { data: userData } = await supabase.auth.getUser();
+  const userId = userData.user.id;
   const { data: visit, error } = await supabase
     .from("visits")
     .select("*")
     .eq("id", visitId)
+    .eq("user_id", userId)
     .maybeSingle();
 
   if (error || !visit) {
@@ -76,6 +80,13 @@ export async function render(app, visitId) {
 
       <form id="edit-form">
         <div class="field">
+          <label for="record_type">Record type</label>
+          <select id="record_type">
+            <option value="">Not specified</option>
+            ${RECORD_TYPES.map((t) => `<option value="${t.value}" ${visit.record_type === t.value ? "selected" : ""}>${t.label}</option>`).join("")}
+          </select>
+        </div>
+        <div class="field">
           <label for="visit_date">Visit date</label>
           <input type="date" id="visit_date" value="${escapeHtml(visit.visit_date || "")}" />
         </div>
@@ -133,6 +144,7 @@ export async function render(app, visitId) {
     saveBtn.textContent = "Saving...";
 
     const payload = {
+      record_type: document.getElementById("record_type").value || null,
       visit_date: document.getElementById("visit_date").value || null,
       hospital_name: document.getElementById("hospital_name").value.trim() || null,
       doctor_name: document.getElementById("doctor_name").value.trim() || null,
@@ -141,7 +153,7 @@ export async function render(app, visitId) {
       notes: document.getElementById("notes").value.trim() || null,
     };
 
-    const { error: updateError } = await supabase.from("visits").update(payload).eq("id", visitId);
+    const { error: updateError } = await supabase.from("visits").update(payload).eq("id", visitId).eq("user_id", userId);
 
     if (updateError) {
       saveBtn.disabled = false;

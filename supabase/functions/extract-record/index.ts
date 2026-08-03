@@ -21,6 +21,7 @@ Read the image carefully and respond with ONLY a single JSON object — no markd
   "diagnosis_summary": "one or two sentence plain-language summary, or null",
   "medicines": [{ "name": "string", "dosage": "string" }],
   "notes": "any other relevant free text (instructions, follow-up dates), or null",
+  "record_type": "one of consultation, lab_report, prescription, vaccination, imaging, other — your best guess at the document type, or null if unclear",
   "confidence_flags": ["field names you are unsure about, e.g. \\"doctor_name\\", \\"medicines\\""]
 }
 
@@ -90,6 +91,15 @@ Deno.serve(async (req: Request) => {
 
     const parsed = JSON.parse(raw.slice(jsonStart, jsonEnd + 1));
 
+    const allowedRecordTypes = [
+      "consultation",
+      "lab_report",
+      "prescription",
+      "vaccination",
+      "imaging",
+      "other",
+    ];
+
     const result = {
       visit_date: parsed.visit_date ?? null,
       hospital_name: parsed.hospital_name ?? null,
@@ -97,6 +107,7 @@ Deno.serve(async (req: Request) => {
       diagnosis_summary: parsed.diagnosis_summary ?? null,
       medicines: Array.isArray(parsed.medicines) ? parsed.medicines : [],
       notes: parsed.notes ?? null,
+      record_type: allowedRecordTypes.includes(parsed.record_type) ? parsed.record_type : null,
       confidence_flags: Array.isArray(parsed.confidence_flags)
         ? parsed.confidence_flags
         : [],

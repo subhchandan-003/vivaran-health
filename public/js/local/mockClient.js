@@ -313,6 +313,7 @@ const functions = {
           diagnosis_summary: null,
           medicines: [],
           notes: null,
+          record_type: null,
           confidence_flags: [],
           local_mode: true,
         },

@@ -70,9 +70,11 @@ export async function render(app) {
   mountPage(app, { title: "Analytics", wide: true }, `<div class="loading-row"><span class="spinner"></span> Loading your analytics...</div>`);
   const content = document.getElementById("page-content");
 
+  const { data: userData } = await supabase.auth.getUser();
   const { data: visits, error } = await supabase
     .from("visits")
-    .select("id, visit_date, hospital_name, doctor_name, medicines")
+    .select("id, visit_date, hospital_name, doctor_name, medicines, record_type")
+    .eq("user_id", userData.user.id)
     .order("visit_date", { ascending: true, nullsFirst: false });
 
   if (error) {
